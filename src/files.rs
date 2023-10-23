@@ -1,6 +1,36 @@
-// This file contains a crud load of functions that are used throughout the program.
-// 
-//To Read, Write and Create files
+//! This module provides functions for performing CRUD (Create, Read, Update, Delete) operations on files in the Rust programming language.
+//! 
+//! This module simplifies file operations in Rust, making it easy to manage and manipulate files in your applications.
+//! 
+//! It offers a simple and efficient way to work with files, allowing you to create, read, update, and delete files with ease.
+//!
+//!
+//! # Contents
+//! - [Create](fn.create_file.html) a file with the given content.
+//! - [Read](fn.read_file.html) a file given its path and filename.
+//! - [Update](fn.update_file.html) an existing file with new content.
+//! - [Delete](fn.delete_file.html) a file given its path and filename.
+//! 
+//! # Examples
+//! In this example we create a file, then read it and update it.
+//! 
+//! ```rust
+//! use dev_utils::files::*;
+//! 
+//! let path = "test/";  // Specify the path where the file should be created.
+//! let filename = "example.txt";  // Also specify the file format & path.
+//! let content = "Hello, Rust!";  // Specify the content to write to the file.
+//! 
+//! let result = create_file(path, filename, content);  // Create the file.
+//! assert!(result.is_ok());  // Check if the file was created successfully.
+//! 
+//! let result = read_file(path, filename);  // Read the file.
+//! assert_eq!(result.unwrap(), "Hello, Rust!");  // Check if the file content is correct.
+//! 
+//! let content = "Updated content!";  // Specify the new content to write to the file.
+//! let result = update_file(path, filename, content);  // Update the file.
+//! ```
+
 use std::fs::{File, OpenOptions, self};
 use std::io::{self, Read, Write};
 use std::path::Path;
@@ -26,15 +56,15 @@ use std::path::Path;
 ///
 /// # Examples
 /// ```rust
-/// use util::files::create_file;
+/// use dev_utils::files::create_file;
 /// 
-/// let path = ".";
+/// let path = "test/";
 /// let filename = "example.txt";
 /// let content = "Hello, Rust!";
 /// let result = create_file(path, filename, content);
 /// assert!(result.is_ok());
 /// ```
-fn create_file(path: &str, filename: &str, content: &str) -> Result<(), io::Error> {
+pub fn create_file(path: &str, filename: &str, content: &str) -> Result<(), io::Error> {
     let file_path = Path::new(path).join(filename);
 
     let mut file = match File::create(&file_path) {
@@ -64,16 +94,23 @@ fn create_file(path: &str, filename: &str, content: &str) -> Result<(), io::Erro
 ///   - `Err(io::Error)` contains an error if the file cannot be opened or read.
 ///
 /// # Example
-///
 /// ```
 /// use std::fs::write;
-/// let path = "example.txt";
+/// use dev_utils::files::read_file;
+/// 
+/// let path = "test/";
+/// 
+/// // Create a file to read from.
+/// let file_name = "example.txt";  // Also specify the file format & path.
 /// let content = "Hello, Rust!";
-/// write(path, content).expect("Unable to write file.");
+/// write(format!("{}{}", path ,file_name), content).expect("Unable to write file.");  // Write file to the current directory.
+/// 
+/// // Read the file.
 /// let result = read_file(path, "example.txt");
-/// assert_eq!(result, Ok("Hello, Rust!".to_string()));
+/// assert!(result.is_ok());  // Check if the file was read successfully.
+/// assert_eq!(result.unwrap(), "Hello, Rust!");  // Check if the file content is correct.
 /// ```
-fn read_file(path: &str, filename: &str) -> Result<String, io::Error> {
+pub fn read_file(path: &str, filename: &str) -> Result<String, io::Error> {
     let file_path = Path::new(path).join(filename);
 
     let mut file = match File::open(&file_path) {
@@ -92,7 +129,7 @@ fn read_file(path: &str, filename: &str) -> Result<String, io::Error> {
 // * UPDATE
 /// Updates an existing file with new content.
 ///
-/// If the file does not exist, it will be created.
+/// If the file does not exist, it will be created. If it does exist, it will be overwritten with the new content.
 ///
 /// # Arguments
 ///
@@ -107,21 +144,22 @@ fn read_file(path: &str, filename: &str) -> Result<String, io::Error> {
 ///   - `Err(io::Error)` contains an error if the file cannot be updated or created.
 ///
 /// # Example
-///
 /// ```
-/// let path = ".";
+/// use dev_utils::files::update_file;
+/// 
+/// let path = "test/";
 /// let filename = "example.txt";
 /// let content = "Updated content!";
 /// let result = update_file(path, filename, content);
 /// assert!(result.is_ok());
 /// ```
-fn update_file(path: &str, filename: &str, content: &str) -> Result<(), io::Error> {
+pub fn update_file(path: &str, filename: &str, content: &str) -> Result<(), io::Error> {
     let file_path = Path::new(path).join(filename);
 
     let mut file = match OpenOptions::new()
-        .write(true)
-        .create(true)
-        .truncate(true)
+        .write(true)  // Open the file in write mode.
+        .create(true)  // Create the file if it does not exist.
+        .truncate(true)  // Truncate the file to 0 bytes. (Meaning it will be overwritten)
         .open(&file_path)
     {
         Ok(file) => file,
@@ -152,12 +190,20 @@ fn update_file(path: &str, filename: &str, content: &str) -> Result<(), io::Erro
 /// # Example
 ///
 /// ```
-/// let path = ".";
+/// use dev_utils::files::create_file;
+/// use dev_utils::files::delete_file;
+/// 
+/// let path = "test/";
 /// let filename = "example.txt";
+/// let content = "Hello, Rust!";
+/// // Create a file to delete.
+/// create_file(path, filename, content).expect("Unable to create file.");
+/// 
+/// // Delete the file.
 /// let result = delete_file(path, filename);
 /// assert!(result.is_ok());
 /// ```
-fn delete_file(path: &str, filename: &str) -> Result<(), io::Error> {
+pub fn delete_file(path: &str, filename: &str) -> Result<(), io::Error> {
     let file_path = format!("{}/{}", path, filename);
 
     match fs::remove_file(&file_path) {
@@ -165,4 +211,3 @@ fn delete_file(path: &str, filename: &str) -> Result<(), io::Error> {
         Err(e) => Err(e),
     }
 }
-

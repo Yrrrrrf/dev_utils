@@ -26,7 +26,7 @@
 /// # Examples
 ///
 /// ```
-/// use logic_tracer::util::terminal::set_fg;
+/// use dev_utils::terminal::set_fg;
 /// 
 /// println!("{}", set_fg("Hello, Red!", "r"));
 /// println!("{}", set_fg("World in Green!", "green"));
@@ -80,7 +80,7 @@ pub fn set_fg(string: &str, fg: impl Into<String>) -> String {
 /// # Examples
 ///
 /// ```
-/// use logic_tracer::util::terminal::set_bg;
+/// use dev_utils::terminal::set_bg;
 ///
 /// println!("{}", set_bg("Hello, Red Background!", "r"));
 /// println!("{}", set_bg("World in Green Background!", "green"));
@@ -103,16 +103,17 @@ pub fn set_fg(string: &str, fg: impl Into<String>) -> String {
 /// ANSI color codes. The behavior may vary on terminals that do not support ANSI codes.
 pub fn set_bg(string: &str, bg: impl Into<String>) -> String {
     format!("\x1b[48;5;{}m{}\x1b[0m", match bg.into().as_str() {
-        "r" | "red" => "196",     // Red background
-        "g" | "green" => "46",   // Green background
-        "b" | "blue" => "44",    // Blue background
-        "c" | "cyan" => "51",    // Cyan background
-        "m" | "magenta" => "52", // Magenta background
-        "y" | "yellow" => "226", // Yellow background
-        _ => "49",               // Default (reset background)
+        "r" | "red" => "196",     // Red
+        "g" | "green" => "46",   // Green
+        "b" | "blue" => "21",     // Blue
+        "c" | "cyan" => "51",     // Cyan
+        "m" | "mage" => "201",    // Magenta
+        "y" | "yellow" => "3", // Yellow
+        "w" | "white" => "15",        // White
+        "black" => "0",         // Black
+        _ => "256"  // Transparent
     }, string)
 }
-
 
 
 // ? Ask for input  ---------------------------------------------------------------------------------------------------------------
@@ -123,6 +124,8 @@ use::std::io::Write;  // io library is part of the standard library (std) (Write
 use std::str::FromStr;  // io library is part of the standard library (std) (Read trait)
 
 
+/// This ask() function is still a prototype, so **it could not work as expected**.
+
 /// Ask for input from the console
 /// 
 /// ### Parameters:
@@ -130,7 +133,7 @@ use std::str::FromStr;  // io library is part of the standard library (std) (Rea
 /// 
 /// ### Returns:
 /// - `T` - The input
-pub (crate) fn ask<T: std::str::FromStr>() -> T where <T as FromStr>::Err: std::fmt::Debug {
+pub fn ask<T: std::str::FromStr>() -> T where <T as FromStr>::Err: std::fmt::Debug {
     let mut input = String::new();  // String::new() is a constructor (used when you want to modify a string)
     print!("Enter something: ");
     io::stdout().flush().unwrap();  // Allows the print!() to be flushed to the console otherwise it will wait for the next println!()
@@ -144,7 +147,7 @@ pub (crate) fn ask<T: std::str::FromStr>() -> T where <T as FromStr>::Err: std::
 /// 
 /// ### Parameters:
 /// - `_: &T` - The variable to print the type of
-pub (crate) fn print_type_of<T>(_: &T) {
+pub fn print_type_of<T>(_: &T) {
     println!("{}", std::any::type_name::<T>())
 }
 
@@ -156,6 +159,6 @@ pub (crate) fn print_type_of<T>(_: &T) {
 /// 
 /// ### Returns:
 /// - [`String`] - The type of the variable
-pub (crate) fn get_type_of<T>(_: &T) -> String {
+pub fn get_type_of<T>(_: &T) -> String {
     return std::any::type_name::<T>().to_string();
 }
