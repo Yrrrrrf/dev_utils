@@ -5,7 +5,7 @@
 //! 
 //! Also have some functions to ask for input from the console.
 
-// ? Command Line Interface (CLI) related scripts  -------------------------------------------------    -------------------------------
+// ? Command Line Interface (CLI) related scripts  --------------------------------------------
 
 /// **Sets the foreground color** of a given string for ANSI terminal output.
 ///
@@ -116,8 +116,7 @@ pub fn set_bg(string: &str, bg: impl Into<String>) -> String {
 }
 
 
-// ? Ask for input  ---------------------------------------------------------------------------------------------------------------
-
+// ? Ask for input  ---------------------------------------------------------------------------
 
 use::std::io;  // io library is part of the standard library (std)
 use::std::io::Write;  // io library is part of the standard library (std) (Write trait)

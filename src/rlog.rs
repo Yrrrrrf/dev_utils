@@ -69,7 +69,6 @@ impl RLog {
         log::set_logger(&RLog).unwrap();
         log::set_max_level(level);   // Set the max log level to use
     }
-
 }
 
 impl Log for RLog {
