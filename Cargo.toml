@@ -1,6 +1,6 @@
 [package]
 name = "dev_utils"
-version = "0.0.4"
+version = "0.0.5"
 description = "A collection of utilities for development"
 authors = ["Yrrrrrf <fernandorezacampos@gmail.com>"]
 repository = "https://github.com/Yrrrrrf/dev_utils"
@@ -10,4 +10,4 @@ license = "MIT"
 keywords = ["development", "utils", "utilities", "dev"]
 
 [dependencies]
-log = "0.4.*"  # for logging
+log = "0.*"  # for logging

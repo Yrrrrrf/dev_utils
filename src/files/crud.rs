@@ -1,4 +1,4 @@
-//! This module provides functions for performing CRUD (Create, Read, Update, Delete) operations on files in the Rust programming language.
+//! This module provides functions for performing CRUD (Create, Read, Update, Delete) operations on files.
 //! 
 //! This module simplifies file operations in Rust, making it easy to manage and manipulate files in your applications.
 //! 
@@ -15,7 +15,7 @@
 //! In this example we create a file, then read it and update it.
 //! 
 //! ```rust
-//! use dev_utils::files::*;
+//! use dev_utils::files::crud::*;
 //! 
 //! let path = "test/";  // Specify the path where the file should be created.
 //! let filename = "example.txt";  // Also specify the file format & path.
@@ -56,7 +56,7 @@ use std::path::Path;
 ///
 /// # Examples
 /// ```rust
-/// use dev_utils::files::create_file;
+/// use dev_utils::files::crud::create_file;
 /// 
 /// let path = "test/";
 /// let filename = "example.txt";
@@ -96,7 +96,7 @@ pub fn create_file(path: &str, filename: &str, content: &str) -> Result<(), io::
 /// # Example
 /// ```
 /// use std::fs::write;
-/// use dev_utils::files::read_file;
+/// use dev_utils::files::crud::read_file;
 /// 
 /// let path = "test/";
 /// 
@@ -145,7 +145,7 @@ pub fn read_file(path: &str, filename: &str) -> Result<String, io::Error> {
 ///
 /// # Example
 /// ```
-/// use dev_utils::files::update_file;
+/// use dev_utils::files::crud::update_file;
 /// 
 /// let path = "test/";
 /// let filename = "example.txt";
@@ -190,8 +190,8 @@ pub fn update_file(path: &str, filename: &str, content: &str) -> Result<(), io::
 /// # Example
 ///
 /// ```
-/// use dev_utils::files::create_file;
-/// use dev_utils::files::delete_file;
+/// use dev_utils::files::crud::create_file;
+/// use dev_utils::files::crud::delete_file;
 /// 
 /// let path = "test/";
 /// let filename = "example.txt";

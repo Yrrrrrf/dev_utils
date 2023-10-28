@@ -38,14 +38,12 @@
 //!
 //! To use this logger, you need to include it in your dependencies and initialize it in your application.
 //! Make sure to set the `RUST_LOG` environment variable to control the log level (e.g., `RUST_LOG=info`).
-
-
 use log::{Log, Level, Metadata, Record, LevelFilter};
 use std::time::{UNIX_EPOCH, SystemTime};
 
-use crate::datetime::{
-    calculate_year_month_day, 
-    calculate_hour_minute_second
+use crate::conversion::datetime::{
+    calculate_hour_minute_second, 
+    calculate_year_month_day
 };
 
 

@@ -8,17 +8,15 @@ use log::LevelFilter;
 
 // Internal modules
 use dev_utils::{
-    print_app_data, 
-    rlog::RLog,
-    terminal::set_bg,
-    terminal::set_fg,
+    print_app_data,
+    log::rlog::RLog,
 };
+
 
 // Main function
 fn main() {
     print_app_data();  // Read the Cargo.toml file and print the app data (name, version, authors)
     RLog::init_logger(LevelFilter::Trace);  // Initialize the logger with the given log level
-    
 
     // Print some messages usibng the terminal module with all colors
     // println!("{}", set_bg("Hello, Red Background!", "r"));
@@ -36,8 +34,5 @@ fn main() {
     // println!("{}", set_fg("Hello, Magenta!", "m"));
     // println!("{}", set_fg("World in Yellow!", "y"));
     // println!("{}", set_fg("Hello, Default!", "defdadault"));
-
-
-
 
 }
