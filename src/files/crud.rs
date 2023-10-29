@@ -30,7 +30,6 @@
 //! let content = "Updated content!";  // Specify the new content to write to the file.
 //! let result = update_file(path, filename, content);  // Update the file.
 //! ```
-
 use std::fs::{File, OpenOptions, self};
 use std::io::{self, Read, Write};
 use std::path::Path;

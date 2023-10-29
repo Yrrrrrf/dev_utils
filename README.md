@@ -14,10 +14,11 @@ It is a manifestation of a crate where we do not need a deep dependencies tree t
 - [ ] `log`
     - [X] `rlog` - Log to stdout
     - [ ] `record` - Record logs to a file
-    - [ ] `log` - Log struct for storing log data
+    - [ ] `log` - Log struct for storing log data (to replace the `log` crate)
 - [ ] `conversion`
     - [X] `datetime` - UNIX timestamp, and date and time utilities
-    - [ ] `base change` - Convert between bases (any base to any base)
+    - [X] `base change` - Convert between bases (any base to any base)
+        - [ ] fix *some* bugs (when using decimals) 
 - [ ] `codex` - Encode and decode data
     - [ ] `base64` - Encode and decode base64 data
     - [ ] `unicode` - Encode and decode unicode data
@@ -34,10 +35,12 @@ It is a manifestation of a crate where we do not need a deep dependencies tree t
     - [ ] `key` - Key utilities (key generation)
 - [ ] `files` - Easy file manipulation utilities
     - [X] `crud` - Create, read, update, and delete files
-    - [ ] `list` - List files and directories in a directory
-    - [ ] `copy` - Copy a file from one location to another
-    - [ ] `move` - Move a file from one location to another
-    - [ ] `rename` - Rename a file or directory
+        - [ ] `list` - List files and directories in a directory
+        - [ ] `copy` - Copy a file from one location to another
+        - [ ] `move` - Move a file from one location to another
+        - [ ] `rename` - Rename a file or directory
+    - [X] `toml` - Read & extract data from `Cargo.toml` files
+    - [ ] `serde` - Serialize and deserialize data
 
 <!--
 - [ ] `crypto`

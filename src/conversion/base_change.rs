@@ -6,6 +6,19 @@
 //!
 //! - `[A-Za-z\d]+` represents any number of letters or digits (at least one).
 //! - `(\.[A-Za-z\d]+)?` represents an optional decimal part, which consists of a dot followed by any number of letters or digits (at least one).
+//! 
+//! The function supports bases up to 62, which means that the input string can contain any of the following characters: `0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`.
+//! 
+//! # Examples
+//! ```rust
+//! use dev_utils::conversion::base_change::*;
+//! 
+//! let result = str_to_num_from_base("1010", 2, 16);
+//! assert_eq!(result, Ok("A".to_string()));
+//! 
+//! let result = str_to_num_from_base("1010.1010", 2, 16);
+//! assert_eq!(result, Ok("A.A".to_string()));
+//! ```
 
 
 /// The function supports bases up to 62, which means that the input string can contain any of the following characters: `0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`.
@@ -21,9 +34,8 @@
 /// A string that represents the number in the new base, or an error message if the input is invalid.
 ///
 /// # Examples
-///
 /// ```
-/// use logic_tracer::base_change::str_to_num_from_base;
+/// use dev_utils::conversion::base_change::str_to_num_from_base;
 ///
 /// let result = str_to_num_from_base("1010", 2, 16);
 /// assert_eq!(result, Ok("A".to_string()));
@@ -82,12 +94,11 @@ pub fn str_to_num_from_base(src: &str, src_base: u8, new_base: u8) -> Result<Str
 ///
 /// # Returns
 ///
-/// An `Option<u8>` that represents the numerical value of the character, or `None` if the character is not a valid digit.
+/// An [`Option<u8>`] that represents the numerical value of the character, or `None` if the character is not a valid digit.
 ///
 /// # Examples
-///
 /// ```
-/// use logic_tracer::base_change::digit_value;
+/// use dev_utils::conversion::base_change::digit_value;
 ///
 /// assert_eq!(digit_value('A'), Some(10));
 /// assert_eq!(digit_value('E'), Some(14));
@@ -120,9 +131,8 @@ pub fn digit_value(c: char) -> Option<u8> {  // Function to convert a digit char
 /// This function will panic if the input string contains an invalid character for the given source base.
 ///
 /// # Examples
-///
 /// ```
-/// use logic_tracer::base_change::src_int_b10;
+/// use dev_utils::conversion::base_change::src_int_b10;
 ///
 /// assert_eq!(src_int_b10("1010", 2), 10);
 /// ```
@@ -149,9 +159,8 @@ pub fn src_int_b10(src: &str, src_base: u8) -> u32 {
 /// A string that represents the integer in the destination base.
 ///
 /// # Examples
-///
 /// ```
-/// use logic_tracer::base_change::int_b10_dst;
+/// use dev_utils::conversion::base_change::int_b10_dst;
 ///
 /// assert_eq!(int_b10_dst(42, 16), "2A");
 /// ```
@@ -168,12 +177,7 @@ pub fn int_b10_dst(n: u32, dst_base: u8) -> String {
 }
 
 
-
-
-
 // & DECIMAL PARTS
-
-
 
 
 /// Converts the decimal part of a number from the given source base to base 10.
@@ -192,9 +196,8 @@ pub fn int_b10_dst(n: u32, dst_base: u8) -> String {
 /// This function will panic if the input string contains an invalid character for the given source base.
 ///
 /// # Examples
-///
 /// ```
-/// use logic_tracer::base_change::src_dec_b10;
+/// use dev_utils::conversion::base_change::src_dec_b10;
 ///
 /// assert_eq!(src_dec_b10("101", 2), 0.625);
 /// ```
@@ -224,9 +227,8 @@ pub fn src_dec_b10(src: &str, src_base: u8) -> f64 {
 /// A string that represents the decimal number in the destination base.
 ///
 /// # Examples
-///
 /// ```
-/// use logic_tracer::base_change::dec_b10_dst;
+/// use dev_utils::conversion::base_change::dec_b10_dst;
 ///
 /// assert_eq!(dec_b10_dst(0.625, 2), "101");
 /// ```
