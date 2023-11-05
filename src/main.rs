@@ -15,7 +15,7 @@ use dev_utils::{
 
 // Main function
 fn main() {
-    print_app_data();  // Read the Cargo.toml file and print the app data (name, version, authors)
+    // print_app_data();  // Read the Cargo.toml file and print the app data (name, version, authors)
     RLog::init_logger(LevelFilter::Trace);  // Initialize the logger with the given log level
 
     // Print some messages usibng the terminal module with all colors

@@ -11,24 +11,8 @@
 //! The `read_cargo_toml_file` function reads and processes a `Cargo.toml` file, extracting
 //! package information such as name, version, and authors, and prints this information.
 //!
-//! # Example:
-//! ```rust
-//! use std::path::Path;
-//! use dev_utils::files::toml;
-//!
-//! // Find all Cargo.toml files in the current directory and its subdirectories
-//! let current_dir = std::env::current_dir().unwrap();
-//! let cargo_toml_files = toml::find_cargo_toml_files(&current_dir);
-//!
-//! for cargo_toml_file in cargo_toml_files {
-//!     println!("Cargo.toml found at: {:?}", cargo_toml_file);
-//!     toml::read_cargo_toml_file(&cargo_toml_file);
-//! }
-//! ```
-//!
 //! These functions are **particularly useful when working with Rust Cargo workspaces,
-//! allowing you to access information from multiple `Cargo.toml` files in one or more
-//! subprojects**.
+//! allowing you to access information from multiple `Cargo.toml` files in one or more subprojects**.
 use std::fs;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -81,126 +65,154 @@ pub fn find_cargo_toml_files(start_dir: &Path) -> Vec<PathBuf> {
 }
 
 
-/// Reads a `Cargo.toml` file, extracts information separated by sections, and returns it as a structured data.
-///
-/// This function parses a `Cargo.toml` file, extracting key-value pairs organized by sections (e.g., "package", "dependencies").
-///
-/// # Arguments
-///
-/// - `cargo_toml_path` - The path to the `Cargo.toml` file to be processed.
-///
-/// # Returns
-///
-/// A [`HashMap`] where keys represent sections (e.g., "package", "dependencies") and values are
-/// sub-maps containing key-value pairs for each section. The top-level keys in the [`HashMap`] correspond
-/// to section names, and the associated sub-maps contain the key-value pairs within each section.
-///
-/// # Example
-/// ```
-/// use dev_utils::files::toml::read_cargo_toml_file;
-/// use std::collections::HashMap;
-/// use std::path::Path;
-/// 
-/// let cargo_toml_path = Path::new("Cargo.toml");
-/// let toml_data = read_cargo_toml_file(&cargo_toml_path);
-///
-/// if let Some(package_info) = toml_data.get("package") {
-///     if let Some(name) = package_info.get("name") {
-///         println!("Package name: {}", name);
-///     }
-/// }
-/// ```
-pub fn read_cargo_toml_file(cargo_toml_path: &Path) -> HashMap<String, HashMap<String, String>> {
-    let mut cargo_toml_data = HashMap::new();
-    let mut current_section = String::new();
+/// Represents a `Cargo.toml` file and its structured data.
+#[derive(Debug, Clone, PartialEq)]
+pub struct CargoFile {
+    pub path: PathBuf,
+    // HashMap<Section, HashMap<Key, Value>>
+    // The hashmap contains a sub-hashmap for each section
+    pub data: HashMap<String, HashMap<String, String>>,
+}
 
-    if let Ok(file) = fs::File::open(cargo_toml_path) {
-        let lines = io::BufReader::new(file).lines();
-        for line in lines {
-            let line = line.unwrap();  // Unwrap the line
+impl CargoFile {
+    /// Creates a new `CargoFile` instance by reading the specified `Cargo.toml` file.
+    ///
+    /// This function initializes a `CargoFile` instance by reading the `Cargo.toml` file located at the given `path`.
+    /// It also extracts and structures the data within the `Cargo.toml` file.
+    ///
+    /// # Arguments
+    ///
+    /// - `path` - The path to the `Cargo.toml` file.
+    ///
+    /// # Returns
+    ///
+    /// A `CargoFile` instance containing the `Cargo.toml` file path and structured data.
+    pub fn new(path: &Path) -> Self {
+        Self {
+            path: path.to_path_buf(),
+            data: Self::get_toml_data(path),
+        }
+    }
 
-            if line.starts_with("[") {
-                // Extract section name from line
-                current_section = line.trim_start_matches('[').trim_end_matches(']').to_string();
-                // Create a sub-map for the section if it doesn't exist
-                cargo_toml_data
-                    .entry(current_section.clone())
-                    .or_insert_with(HashMap::new);
-            } else if let Some((key, value)) = extract_key_value(&line) {
-                // Insert key-value pair into the section's sub-map
-                cargo_toml_data
-                    .entry(current_section.clone())
-                    .and_modify(|map| {
-                        map.insert(key, value);
-                    });
+
+    /// Reads a `Cargo.toml` file, extracts information separated by sections, and returns it as a structured data.
+    ///
+    /// This function parses a `Cargo.toml` file, extracting key-value pairs organized by sections (e.g., "package", "dependencies").
+    ///
+    /// It also ignores comments (lines starting with `#`) and removes quotes from values.
+    /// 
+    /// # Arguments
+    ///
+    /// - `cargo_toml_path` - The path to the `Cargo.toml` file to be processed.
+    ///
+    /// # Returns
+    ///
+    /// A [`HashMap`] where keys represent sections (e.g., "package", "dependencies") and values are
+    /// sub-maps containing key-value pairs for each section. The top-level keys in the [`HashMap`] correspond
+    /// to section names, and the associated sub-maps contain the key-value pairs within each section.
+    ///
+    /// # Example
+    /// ```
+    /// use dev_utils::files::toml::CargoFile;
+    /// use std::collections::HashMap;
+    /// use std::path::Path;
+    /// 
+    /// let cargo_toml_path = Path::new("Cargo.toml");
+    /// let toml_data = CargoFile::get_cargo_toml_data(&cargo_toml_path);
+    ///
+    /// if let Some(package_info) = toml_data.get("package") {
+    ///     if let Some(name) = package_info.get("name") {
+    ///         println!("Package name: {}", name);
+    ///     }
+    /// }
+    /// ```
+    pub fn get_toml_data(cargo_toml_path: &Path) -> HashMap<String, HashMap<String, String>> {
+        let mut cargo_toml_data = HashMap::new();
+        let mut current_section = String::new();
+    
+        if let Ok(file) = fs::File::open(cargo_toml_path) {
+            let lines = io::BufReader::new(file).lines();
+            for line in lines {
+                let line = line.unwrap();  // Unwrap the line
+                // remove comments (remove everything after #)
+                let line = line.split('#').next().unwrap().trim().to_string();
+    
+                if line.starts_with("[") {
+                    // Extract section name from line
+                    current_section = line.trim_start_matches('[').trim_end_matches(']').to_string();
+                    cargo_toml_data  // Insert the section name into the top-level HashMap
+                        .entry(current_section.clone())  // Clone the section name
+                        .or_insert_with(HashMap::new);  // Create a new sub-map for the section
+                } else if let Some((key, value)) = Self::extract_key_value(&line) {
+                    // Insert key-value pair into the section's sub-map
+                    cargo_toml_data
+                        .entry(current_section.clone())
+                        .and_modify(|map| {
+                            map.insert(key, value);
+                        });
+                }
             }
         }
+        cargo_toml_data
     }
-    cargo_toml_data
-}
 
 
-/// Helper function to extract key-value pairs from a line of a TOML configuration.
-///
-/// This function parses a line containing a key-value pair in TOML format and returns it as a tuple.
-///
-/// # Arguments
-///
-/// - `line` - A string containing a key-value pair in TOML format.
-///
-/// # Returns
-///
-/// An [`Option`] containing a tuple with two elements: the key (as a `String`) and the value (as a `String`).
-///
-/// If the input line is not in a valid key-value format, `None` is returned.
-///
-/// # Example
-///
-/// ```
-/// use dev_utils::files::toml::extract_key_value;
-/// 
-/// let line = "name = \"example\"";  // String containing a key-value pair in TOML format
-///
-/// if let Some((key, value)) = extract_key_value(line) {
-///     assert_eq!(key, "name");
-///     assert_eq!(value, "example");
-/// }
-/// ```
-pub fn extract_key_value(line: &str) -> Option<(String, String)> {
-    let parts: Vec<&str> = line.splitn(2, '=').collect();
+    /// Gets the data for a specific section from the `Cargo.toml` file.
+    ///
+    /// # Arguments
+    ///
+    /// - `section` - The name of the section to retrieve.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing a reference to the section's data as a `HashMap`.
+    pub fn get_section_data(&self, section: &str) -> Option<&HashMap<String, String>> {
+        self.data.get(section)  // Return the section data
+    }
 
-    match parts.len() {
-        2 => {
-            let key = parts[0].trim();  // Remove leading/trailing whitespace from the key
-            let value = parts[1].trim().trim_matches('"').to_string();  // Remove quotes from the value
-            Some((key.to_string(), value))  // Return the key-value pair as a tuple
+
+    /// Gets a specific attribute from a section in the `Cargo.toml` file.
+    ///
+    /// # Arguments
+    ///
+    /// - `section` - The name of the section.
+    /// - `attribute` - The name of the attribute within the section.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing a reference to the attribute's value as a `String`.
+    pub fn get_section_attribute(&self, section: &str, attribute: &str) -> Option<&String> {
+        match self.get_section_data(section) {
+            Some(section_data) => section_data.get(attribute),  // If the section exists, return the attribute
+            None => None,  // If the section doesn't exist, return None
         }
-        _ => None,  // If the line is not in a valid key-value format, return None
     }
-}
 
 
-// todo: Think if this function is needed
-// todo: probably needs to be refactored to something like "get package data"
-// todo: or maybe it should be a method of the CargoFile struct
-/// Reads and processes a `Cargo.toml` file, extracting package information.
-/// 
-/// This function reads the specified `Cargo.toml` file and extracts package information
-///
-/// # Arguments
-///
-/// - `cargo_toml_path` - The path to the `Cargo.toml` file to be processed.
-pub fn print_package_data(cargo_toml_path: &Path) {
-    // let mut name = String::new();
-    // let mut version = String::new();
-    // let mut authors = String::new();
+    /// Helper function to extract key-value pairs from a line of a TOML configuration.
+    ///
+    /// This function parses a line containing a key-value pair in TOML format and returns it as a tuple.
+    ///
+    /// # Arguments
+    ///
+    /// - `line` - A string containing a key-value pair in TOML format.
+    ///
+    /// # Returns
+    ///
+    /// An [`Option`] containing a tuple with two elements: the key (as a `String`) and the value (as a `String`).
+    ///
+    /// If the input line is not in a valid key-value format, `None` is returned.
+    fn extract_key_value(line: &str) -> Option<(String, String)> {
+        let parts: Vec<&str> = line.splitn(2, '=').collect();
 
-    // GET THE PACKAGE NAME, VERSION, AND AUTHORS
-    let cargo_file = read_cargo_toml_file(&cargo_toml_path);
-    if let Some(package_info) = cargo_file.get("package") {
-        if let Some(name) = package_info.get("name") {println!("Package name: {}", name);}
-        if let Some(version) = package_info.get("version") {println!("Package version: {}", version);}
-        if let Some(authors) = package_info.get("authors") {println!("Package authors: {}", authors);}
-        println!();
+        match parts.len() {
+            2 => {
+                let key = parts[0].trim();  // Remove leading/trailing whitespace from the key
+                let value = parts[1].trim().trim_matches('"').to_string();  // Remove quotes from the value
+                Some((key.to_string(), value))  // Return the key-value pair as a tuple
+            }
+            _ => None,  // If the line is not in a valid key-value format, return None
+        }
     }
+
 }

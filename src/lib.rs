@@ -18,13 +18,15 @@
 //! use log::LevelFilter;  // Log crate
 //! 
 //! fn main() {
-//!     print_app_data();  // Print application data
+//!     print_app_data(file!());  // Print application data (name, version, authors, etc.)
 //!     RLog::init_logger(LevelFilter::Trace);  // Initialize the logger with the given log level
 //!     log::info!("Some data!");  // [2021-01-01 00:00:00] INFO: Hello World!
 //!     // Your code here...
 //! }
 //! ```
-// #[allow(unused)]
+
+use std::{path::Path, collections::HashMap};
+#[allow(unused)]
 
 pub mod log;
 pub mod files;
@@ -51,38 +53,40 @@ mod console;
 /// use dev_utils::print_app_data;
 ///
 /// fn main() {
-///     print_app_data();
+///     print_app_data(file!());  // Print application data
 /// }
 /// ```
 ///
 /// The function will clear the terminal and display information extracted from 'Cargo.toml', such as:
 ///
 /// ```plaintext
-/// MyApplicationName
-/// V1.0.0
-/// Authors: John Doe, Jane Smith
+/// MyApplicationName V0.1.0
+/// Authors: Some Author, Another Author
 /// ```
-use files::toml::*;
-
-
-pub fn print_app_data() {
+pub fn print_app_data(actual_file_path: &'static str) {
+    // #[allow(unused)]
+    use files::toml::*;  // Import the toml module (Only when using the print_app_data() fn)
     print!("{}[2J{}[1;1H", 27 as char, 27 as char);  // Clear the terminal
 
-    find_cargo_toml_files(&std::env::current_dir().unwrap()).iter().for_each(|cargo_toml_file| {
-        // println!("Cargo.toml found at: {:?}", cargo_toml_file);
-        // print_package_data(&cargo_toml_file);
+    let start_dir = Path::new(actual_file_path)
+        .parent().unwrap()  // Get the src directory
+        .parent().unwrap();  // Get the project directory (can be a workspace or a single project)
+    let mut package_info: &HashMap<String, String> = &HashMap::new();
+    let mut cargo_file: Option<CargoFile>;
 
-        // println!("Package name: {:#?}", cargo_file);
-
-        let cargo_file = read_cargo_toml_file(&cargo_toml_file);
-        if let Some(package_info) = cargo_file.get("package") {
-            if let Some(name) = package_info.get("name") {println!("Package name: {}", name);}
-            if let Some(version) = package_info.get("version") {println!("Package version: {}", version);}
-            if let Some(authors) = package_info.get("authors") {println!("Package authors: {}", authors);}
-            println!();
+    for entry in std::fs::read_dir(start_dir).unwrap() {  // Iterate over the entries in the directory
+        let path = entry.unwrap().path();  // Get the path of the entry
+        if path.is_file() && path.file_name() == Some("Cargo.toml".as_ref()) {
+            cargo_file = Some(CargoFile::new(&path));
+            package_info = cargo_file.as_ref().unwrap().get_section_data("package").unwrap();
+            // println!("{:#?}\n", package_info);
         }
-
-    });
+    }
+    println!("\x1b[32m{}\x1b[0m \x1b[34m{}\x1b[0m", 
+        package_info.get("name").unwrap(), 
+        format!("V{}", package_info.get("version").unwrap())
+    );
+    println!("Authors: {}", package_info.get("authors").unwrap());
 }
 
 
