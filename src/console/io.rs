@@ -1,3 +1,7 @@
+//! # Console Input/Output Module
+//!
+//! This module provides functions for interacting with the console, including input and output operations.
+//!
 use::std::io;  // io library is part of the standard library (std)
 use::std::io::Write;  // io library is part of the standard library (std) (Write trait)
 use std::str::FromStr;  // io library is part of the standard library (std) (Read trait)

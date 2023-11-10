@@ -7,4 +7,5 @@
 //! 
 #![allow(unused)]  // Allow unused code (temporarily)
 pub mod format;
-pub mod io;
+// ^ mod io (Input/Output) is not ready yet. So isn't a public module.
+mod io;

@@ -31,11 +31,11 @@ use std::{path::Path, collections::HashMap};
 pub mod log;
 pub mod files;
 pub mod conversion;
+pub mod console;
 
 // ^ Still need to add the following modules:
 mod codex;
 mod crypto;
-mod console;
 
 
 /// Clears the terminal screen and extracts relevant information from the 'Cargo.toml' file,
@@ -82,11 +82,12 @@ pub fn print_app_data(actual_file_path: &'static str) {
             // println!("{:#?}\n", package_info);
         }
     }
+
     println!("\x1b[32m{}\x1b[0m \x1b[34m{}\x1b[0m", 
         package_info.get("name").unwrap(), 
         format!("V{}", package_info.get("version").unwrap())
     );
-    println!("Authors: {}", package_info.get("authors").unwrap());
+    println!("Authors: {}\n", package_info.get("authors").unwrap());
 }
 
 
