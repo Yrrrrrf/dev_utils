@@ -17,6 +17,7 @@
 //! - [`days_in_year`](fn.days_in_year.html): Get the number of days in a specific year.
 //! - [`days_in_month`](fn.days_in_month.html): Get the number of days in a specific month.
 //! - [`is_leap_year`](fn.is_leap_year.html): Check if a given year is a leap year.
+//! - [`now`](fn.now.html): Get the current date and time (values are based on the given timezone).
 //!
 //! ## Examples
 //!
@@ -53,6 +54,8 @@
 //!
 //! - Leap year calculations are based on the Gregorian calendar.
 //! It means that a leap year is every 4 years, except for years that are divisible by 100 and not divisible by 400.
+
+use std::time::{UNIX_EPOCH, SystemTime};
 
 
 /// Calculates the days, hours, minutes, and seconds from the given timestamp.
@@ -195,4 +198,38 @@ pub fn days_in_month(year: u64, month: u8) -> u64 {
 /// ```
 pub fn is_leap_year(year: u64) -> bool {
     (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)
+}
+
+
+/// Returns the current date and time in the format: 2021-08-01 16:00:00
+/// 
+/// # Example
+/// 
+/// ```rust
+/// use dev_utils::conversion::datetime::now; // Update the import path
+/// 
+/// (-12..=14).for_each(|i| { // Print all the hours from -12 to 14 (all possible timezones)
+///     let (year, month, day, hour, minute, second) = dev_utils::conversion::datetime::now(i);
+///     println!("{i:>4} -> {year:4}-{month:0>2}-{day:0>2} {hour:0>2}:{minute:0>2}:{second:0>2}");
+/// });
+/// ```
+/// 
+/// # Panics
+/// 
+/// Panics if the timezone is not between -12 and 14.
+pub fn now(timezone: i8) -> (u64, u8, u64, u64, u64, u64) {
+    assert!(timezone >= -12 && timezone <= 14);  // timezone must be between -12 and 14
+    let mut timestamp: u64 = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+
+    match timezone {
+        0 => (),  // Do nothing if the timezone is 0 (same as being commented)
+        _ if timezone > 0 => timestamp += timezone as u64 * 3600,
+        _ if timezone < 0 => timestamp -= (-timezone) as u64 * 3600,  // Convert the negative timezone to a positive one
+        _ => panic!("Invalid timezone offset"),
+    }
+
+    let (days, hours, minutes, seconds) = calculate_hour_minute_second(timestamp);
+    let (years, months, days) = calculate_year_month_day(days);
+
+    (years, months, days, hours, minutes, seconds)
 }

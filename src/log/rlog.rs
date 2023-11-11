@@ -38,13 +38,10 @@
 //!
 //! To use this logger, you need to include it in your dependencies and initialize it in your application.
 //! Make sure to set the `RUST_LOG` environment variable to control the log level (e.g., `RUST_LOG=info`).
-use log::{Log, Level, Metadata, Record, LevelFilter};
-use std::time::{UNIX_EPOCH, SystemTime};
+#![allow(unused)]
 
-use crate::conversion::datetime::{
-    calculate_hour_minute_second, 
-    calculate_year_month_day
-};
+use log::{Log, Level, Metadata, Record, LevelFilter};
+use crate::conversion::datetime::now;
 
 
 /// The `RLog` struct represents a logger.
@@ -87,18 +84,14 @@ impl Log for RLog {
     /// # Arguments
     /// - `record` [Record] - The record to print.
     fn log(&self, record: &Record) {
-        let mut timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as u64;
-        timestamp -= 6 * 3600;  // remove 6 hours from the timestamp
-        let (days, hours, minutes, seconds) = calculate_hour_minute_second(timestamp);
-        let (years, months, days) = calculate_year_month_day(days);
+        let (year, month, day, hour, minute, second) = crate::conversion::datetime::now(-6);
 
         if self.enabled(record.metadata()) {
-            println!("\x1b[90m[{} {:>16}]\x1b[0m {:16} {}",
-                format!("{:4}-{:0>2}-{:0>2} {:0>2}:{:0>2}:{:0>2}", 
-                    years, months, days, hours, minutes, seconds),
+            // println!("\x1b[90m[{:20}{:^12}]\x1b[0m {:<14} {}",  // Some other formatting
+            println!("\x1b[90m[{:20}{:>12}]\x1b[0m {:<14} {}",
+                format!("{year:4}-{month:0>2}-{day:0>2} {hour:0>2}:{minute:0>2}:{second:0>2}"),
                 record.target(),
                 format!("\x1b[{}m{}\x1b[0m", match record.level() {
-                    // CYAN TRACE
                     Level::Trace => "36",  // Cyan
                     Level::Debug => "34",  // Blue
                     Level::Info => "32",  // Green

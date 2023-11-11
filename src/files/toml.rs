@@ -64,17 +64,18 @@ pub fn find_cargo_toml_files(start_dir: &Path) -> Vec<PathBuf> {
     cargo_toml_files  // Return the cargo_toml_files vector (it will be empty if the start_dir is not a directory)
 }
 
-
-/// Represents a `Cargo.toml` file and its structured data.
+/// This struct represents a *.toml file and provides methods to read and extract information from it.
+/// 
+/// Used to read and extract information from a `Cargo.toml` file.
 #[derive(Debug, Clone, PartialEq)]
-pub struct CargoFile {
+pub struct TomlFile {
     pub path: PathBuf,
     // HashMap<Section, HashMap<Key, Value>>
     // The hashmap contains a sub-hashmap for each section
     pub data: HashMap<String, HashMap<String, String>>,
 }
 
-impl CargoFile {
+impl TomlFile {
     /// Creates a new `CargoFile` instance by reading the specified `Cargo.toml` file.
     ///
     /// This function initializes a `CargoFile` instance by reading the `Cargo.toml` file located at the given `path`.

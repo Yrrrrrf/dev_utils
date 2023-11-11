@@ -24,14 +24,13 @@
 //!     // Your code here...
 //! }
 //! ```
-
 use std::{path::Path, collections::HashMap};
-#[allow(unused)]
 
 pub mod log;
+pub mod http;
 pub mod files;
-pub mod conversion;
 pub mod console;
+pub mod conversion;
 
 // ^ Still need to add the following modules:
 mod codex;
@@ -72,12 +71,12 @@ pub fn print_app_data(actual_file_path: &'static str) {
         .parent().unwrap()  // Get the src directory
         .parent().unwrap();  // Get the project directory (can be a workspace or a single project)
     let mut package_info: &HashMap<String, String> = &HashMap::new();
-    let mut cargo_file: Option<CargoFile>;
+    let mut cargo_file: Option<TomlFile>;
 
     for entry in std::fs::read_dir(start_dir).unwrap() {  // Iterate over the entries in the directory
         let path = entry.unwrap().path();  // Get the path of the entry
         if path.is_file() && path.file_name() == Some("Cargo.toml".as_ref()) {
-            cargo_file = Some(CargoFile::new(&path));
+            cargo_file = Some(TomlFile::new(&path));
             package_info = cargo_file.as_ref().unwrap().get_section_data("package").unwrap();
             // println!("{:#?}\n", package_info);
         }
