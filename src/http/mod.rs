@@ -216,6 +216,7 @@ impl std::fmt::Display for HttpStatus {
     }
 }
 
+
 // * HTTP Methods -------------------------------------------------------------------------------------------------
 
 /// Define a macro called 'http_methods_enum' that generates an enum for HTTP methods.
@@ -283,17 +284,11 @@ impl Default for HttpMethod {
 }
 
 
-
-
-
-
-
-
 // * HTTP Versions ------------------------------------------------------------------------------------------------
 
 // Define the HTTP versions using a macro
 macro_rules! http_versions_enum {
-    ($($variant:ident),*) => {
+    ($($variant:ident ($str:expr)),*) => {
         /// Represents HTTP versions (HTTP/1.0, HTTP/1.1, HTTP/2.0).
         ///
         /// This enum provides a set of HTTP versions that can be used to specify the desired version
@@ -312,7 +307,7 @@ macro_rules! http_versions_enum {
             /// - `&str` - A string representation of the HTTP version.
             pub fn as_str(&self) -> &str {
                 match self {
-                    $(HttpVersion::$variant => stringify!($variant),)*
+                    $(HttpVersion::$variant => $str,)*
                 }
             }
 
@@ -329,7 +324,7 @@ macro_rules! http_versions_enum {
             /// - `None` - If the string does not match any supported HTTP version.
             pub fn from_str(version: &str) -> Option<Self> {
                 match version {
-                    $(stringify!($variant) => Some(HttpVersion::$variant),)*
+                    $($str => Some(HttpVersion::$variant),)*
                     _ => None,
                 }
             }
@@ -337,15 +332,16 @@ macro_rules! http_versions_enum {
     };
 }
 
-http_versions_enum!(Http1_0, Http1_1, Http2_0);
+// Example usage:
+http_versions_enum!(
+    Http1_0("HTTP/1.0"),
+    Http1_1("HTTP/1.1"),
+    Http2_0("HTTP/2.0")
+);
 
 impl std::fmt::Display for HttpVersion {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "HTTP/{}", match self {
-            HttpVersion::Http1_0 => "1.0",
-            HttpVersion::Http1_1 => "1.1",
-            HttpVersion::Http2_0 => "2.0",
-        })
+        write!(f, "{}", self.as_str())
     }
 }
 

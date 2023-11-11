@@ -13,44 +13,35 @@
 //! Host: www.tutorialspoint.com
 //! Accept-Language: en-us
 //! ```
-use super::HttpMethod;
+use super::{HttpMethod, HttpVersion};
 
 
 #[derive(Debug, Clone)]
 pub struct HttpRequest {
     pub method: HttpMethod,
+    pub http_version: HttpVersion,
     pub url: String,
-    pub headers: Vec<String>,
+    // pub headers: Vec<String>,
     pub body: String,
 }
 
 impl HttpRequest {
     pub fn new(
         method: HttpMethod, 
+        http_version: HttpVersion,
         url: impl Into<String>, 
-        headers: Vec<String>, 
+        // headers: Vec<String>, 
         body: String
     ) -> HttpRequest {
         HttpRequest {
-            method, 
-            url: url.into(), 
-            headers, 
+            method,
+            http_version,
+            url: url.into(),
+            // headers, 
             body
         }
     }
 
-    pub fn new_1_1(
-        method: HttpMethod, 
-        url: impl Into<String>, 
-        body: String
-    ) -> HttpRequest {
-        HttpRequest {
-            method, 
-            url: url.into(),
-            headers: Vec::new(), 
-            body
-        }
-    }
 }
 
 impl ToString for HttpRequest {
@@ -62,14 +53,14 @@ impl ToString for HttpRequest {
     /// use http_request::HttpRequest;
     /// use http_method::HttpMethod;
     /// 
-    /// let request = HttpRequest::new_1_1(HttpMethod::Get, "/index.html", "Hello World!".to_string());
+    /// let request = HttpRequest::new(HttpMethod::GET, HttpVersion::Http1_1,"/index.html", "Hello, Rust!".to_string());
     /// println!("{}", request.to_string());
     /// ```
     fn to_string(&self) -> String {
-        let mut request = format!("{:?} {} HTTP/1.1\r\n", self.method, self.url);
-        for header in &self.headers {
-            request.push_str(&format!("{}\r\n", header));
-        }
+        let mut request = format!("{:?} {} {}\r\n", self.method, self.url, self.http_version);
+        // for header in &self.headers {
+        //     request.push_str(&format!("{}\r\n", header));
+        // }
         request.push_str(&format!("\r\n{}", self.body));
         request
     }
