@@ -87,9 +87,26 @@ impl Log for RLog {
         let (year, month, day, hour, minute, second) = crate::conversion::datetime::now(-6);
 
         if self.enabled(record.metadata()) {
-            // println!("\x1b[90m[{:20}{:^12}]\x1b[0m {:<14} {}",  // Some other formatting
             println!("\x1b[90m[{:20}{:>12}]\x1b[0m {:<14} {}",
-                format!("{year:4}-{month:0>2}-{day:0>2} {hour:0>2}:{minute:0>2}:{second:0>2}"),
+                // format!("{year:4}-{month:0>2}-{day:0>2} {hour:0>2}:{minute:0>2}:{second:0>2}"),
+
+                // todo: Add this format to the datetime module (dev_utils)
+                format!("{year:4}-{:0>3}-{day:0>2} {hour:0>2}:{minute:0>2}:{second:0>2}", 
+                match month {
+                    1 => "Jan",
+                    2 => "Feb",
+                    3 => "Mar",
+                    4 => "Apr",
+                    5 => "May",
+                    6 => "Jun",
+                    7 => "Jul",
+                    8 => "Aug",
+                    9 => "Sep",
+                    10 => "Oct",
+                    11 => "Nov",
+                    12 => "Dec",
+                    _ => "Err",
+                }),
                 record.target(),
                 format!("\x1b[{}m{}\x1b[0m", match record.level() {
                     Level::Trace => "36",  // Cyan

@@ -222,6 +222,7 @@ pub fn now(timezone: i8) -> (u64, u8, u64, u64, u64, u64) {
     let mut timestamp: u64 = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
 
     match timezone {
+        // todo: check why with timezone 0 the timestamp is 1 hour behind...
         0 => (),  // Do nothing if the timezone is 0 (same as being commented)
         _ if timezone > 0 => timestamp += timezone as u64 * 3600,
         _ if timezone < 0 => timestamp -= (-timezone) as u64 * 3600,  // Convert the negative timezone to a positive one

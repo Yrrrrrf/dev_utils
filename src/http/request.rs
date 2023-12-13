@@ -28,17 +28,17 @@ pub struct HttpRequest {
 impl HttpRequest {
     pub fn new(
         method: HttpMethod, 
-        http_version: HttpVersion,
+        http_version: HttpVersion, 
         url: impl Into<String>, 
         // headers: Vec<String>, 
-        body: String
+        body: impl Into<String>
     ) -> HttpRequest {
         HttpRequest {
             method,
             http_version,
             url: url.into(),
             // headers, 
-            body
+            body: body.into(),
         }
     }
 

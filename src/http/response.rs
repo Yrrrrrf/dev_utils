@@ -31,19 +31,14 @@ pub struct HttpResponse {
 }
 
 impl HttpResponse {
-    // pub fn new(status: HttpStatus, http_version: HttpVersion, headers: Vec<String>, body: String) -> HttpResponse {
-        // HttpResponse {status, http_version, headers, body}
-    pub fn new(status: HttpStatus, http_version: HttpVersion, body: String) -> HttpResponse {
-        HttpResponse {status, http_version, body}
+    pub fn new(status: HttpStatus, http_version: HttpVersion, body: impl Into<String>) -> HttpResponse {
+        HttpResponse {status, http_version, body: body.into()}
     }
 
-
-    // pub fn new_1_1(status: HttpStatus, headers: Vec<String>, body: String) -> HttpResponse {
-    //     HttpResponse {status, http_version: HttpVersion::Http1_1, headers, body}
-    pub fn new_1_1(status: HttpStatus, body: String) -> HttpResponse {
-        HttpResponse {status, http_version: HttpVersion::Http1_1, body}
+    pub fn new_1_1(status: HttpStatus, body: impl Into<String>) -> HttpResponse {
+        HttpResponse {status, http_version: HttpVersion::Http1_1, body: body.into()}
     }
-
+        
 
     /// Returns the current date and time in the format: 2021-08-01 16:00:00
     /// 
@@ -107,4 +102,3 @@ impl HttpResponse {
     }
 
 }
-

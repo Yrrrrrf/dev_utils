@@ -30,8 +30,10 @@
 //! let content = "Updated content!";  // Specify the new content to write to the file.
 //! let result = update_file(path, filename, content);  // Update the file.
 //! ```
+// todo: FIX THE EXAMPLES (Change from Result<String, String> to Result<(), String>)
+use std::fmt::format;
 use std::fs::{File, OpenOptions, self};
-use std::io::{self, Read, Write};
+use std::io::{self, Read, Write, Error};
 use std::path::Path;
 
 
@@ -63,7 +65,7 @@ use std::path::Path;
 /// let result = create_file(path, filename, content);
 /// assert!(result.is_ok());
 /// ```
-pub fn create_file(path: &str, filename: &str, content: &str) -> Result<(), io::Error> {
+pub fn create_file(path: &str, filename: &str, content: &str) -> Result<String, io::Error> {
     let file_path = Path::new(path).join(filename);
 
     let mut file = match File::create(&file_path) {
@@ -72,7 +74,7 @@ pub fn create_file(path: &str, filename: &str, content: &str) -> Result<(), io::
     };
 
     match file.write_all(content.as_bytes()) {
-        Ok(_) => Ok(()),
+        Ok(_) => Ok(format!("Successfully created file: {}", file_path.display())),
         Err(e) => Err(e),
     }
 }
@@ -107,7 +109,7 @@ pub fn create_file(path: &str, filename: &str, content: &str) -> Result<(), io::
 /// // Read the file.
 /// let result = read_file(path, "example.txt");
 /// assert!(result.is_ok());  // Check if the file was read successfully.
-/// assert_eq!(result.unwrap(), "Hello, Rust!");  // Check if the file content is correct.
+/// assert_eq!(result.unwrap(), Ok(()));  // Check if the file content is correct.
 /// ```
 pub fn read_file(path: &str, filename: &str) -> Result<String, io::Error> {
     let file_path = Path::new(path).join(filename);
@@ -119,8 +121,9 @@ pub fn read_file(path: &str, filename: &str) -> Result<String, io::Error> {
 
     let mut content = String::new();
     match file.read_to_string(&mut content) {
+        // if Ok, return the content of the file
         Ok(_) => Ok(content),
-        Err(e) => Err(e),
+        Err(e) => Err(Error::new(io::ErrorKind::AddrNotAvailable, format!("Error reading file: {}", e))),
     }
 }
 
@@ -152,7 +155,7 @@ pub fn read_file(path: &str, filename: &str) -> Result<String, io::Error> {
 /// let result = update_file(path, filename, content);
 /// assert!(result.is_ok());
 /// ```
-pub fn update_file(path: &str, filename: &str, content: &str) -> Result<(), io::Error> {
+pub fn update_file(path: &str, filename: &str, content: &str) -> Result<String, io::Error> {
     let file_path = Path::new(path).join(filename);
 
     let mut file = match OpenOptions::new()
@@ -166,10 +169,62 @@ pub fn update_file(path: &str, filename: &str, content: &str) -> Result<(), io::
     };
 
     match file.write_all(content.as_bytes()) {
-        Ok(_) => Ok(()),
-        Err(e) => Err(e),
+        Ok(d) => Ok(format!("Successfully updated file: {}", file_path.display())),
+        Err(e) => Err(Error::new(io::ErrorKind::AddrNotAvailable, format!("Error writing to file: {}", e))),
     }
 }
+
+
+// * APPEND (Add to file)
+/// Appends content to an existing file.
+///
+/// # Arguments
+///
+/// - `path` - A string slice representing the path where the file is located.
+/// - `filename` - A string slice representing the name of the file to be updated.
+/// - `content` - A string slice representing the content to append to the file.
+///
+/// # Returns
+///
+/// - A `Result` where:
+///   - `Ok(())` indicates success in appending to the file.
+///   - `Err(io::Error)` contains an error if the file cannot be updated.
+///
+/// # Example
+///
+/// ```
+/// use dev_utils::files::crud::create_file;
+/// use dev_utils::files::crud::add_to_file;
+/// 
+/// let path = "test/";
+/// let filename = "example.txt";
+/// let content = "Hello, Rust!";
+/// // Create a file to append to.
+/// create_file(path, filename, content).expect("Unable to create file.");
+/// 
+/// // Append to the file.
+/// let append_content = " Appended content!";
+/// let result = add_to_file(path, filename, append_content);
+/// assert!(result.is_ok());
+/// ```
+pub fn append_file(path: &str, filename: &str, content: &str) -> Result<String, io::Error> {
+    let file_path = Path::new(path).join(filename);
+
+    let mut file = match OpenOptions::new()
+        .write(true)  // Open the file in write mode.
+        .append(true) // Set the file to append mode.
+        .open(&file_path)
+    {
+        Ok(file) => file,
+        Err(e) => return Err(e),
+    };
+
+    match file.write_all(content.as_bytes()) {
+        Ok(_) => Ok(format!("Successfully appended to file: {}", file_path.display())),
+        Err(e) => Err(Error::new(io::ErrorKind::AddrNotAvailable, format!("Error writing to file: {}", e))),
+    }
+}
+
 
 
 // * DELETE
@@ -202,11 +257,11 @@ pub fn update_file(path: &str, filename: &str, content: &str) -> Result<(), io::
 /// let result = delete_file(path, filename);
 /// assert!(result.is_ok());
 /// ```
-pub fn delete_file(path: &str, filename: &str) -> Result<(), io::Error> {
+pub fn delete_file(path: &str, filename: &str) -> Result<String, io::Error> {
     let file_path = format!("{}/{}", path, filename);
 
     match fs::remove_file(&file_path) {
-        Ok(_) => Ok(()),
-        Err(e) => Err(e),
+        Ok(_) => Ok(format!("Successfully deleted file: {}", file_path)),
+        Err(e) => Err(Error::new(io::ErrorKind::InvalidInput, format!("Error deleting file: {}", e))),
     }
 }

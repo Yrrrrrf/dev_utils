@@ -267,7 +267,14 @@ macro_rules! http_methods_enum {
 
 
 // Generate the HTTP methods enum and methods using the macro.
-http_methods_enum!(GET, POST, PUT, DELETE);
+http_methods_enum!(
+    // These 4 methods are the most common HTTP methods.
+    // * In some other contexts they are called CRUD methods.
+    POST,  // Create a resource
+    GET,  // Retrieve a resource
+    PUT,  // Update a resource
+    DELETE  // Delete a resource
+);
 
 impl Default for HttpMethod {
     /// Returns the default HTTP method, which is [`HttpMethod::GET`].
