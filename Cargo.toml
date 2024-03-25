@@ -1,13 +1,24 @@
-[package]
-name = "dev_utils"
-version = "0.0.11"
-description = "A collection of utilities for development"
-authors = ["Yrrrrrf <fernandorezacampos@gmail.com>"]
-repository = "https://github.com/Yrrrrrf/dev_utils"
-documentation = "https://docs.rs/dev_utils"
-edition = "2021"
-license = "MIT"
-keywords = ["development", "utils", "utilities", "dev"]
+[workspace]
+resolver = "2"
+members = [
+    # external crates
+    "dev_utils",
+    "dev_macros",
+    # internal crates (for usage in the workspace)
+]
 
-[dependencies]
-log = "0.*"  # logging (https://crates.io/crates/log)
+# COMPILE OPTIMIZATION ------------------------------------------------------------------------
+# where 1 is the lowest and 3 is the highest level of optimization
+
+[profile.dev]
+opt-level = 0  # no optimizations (fastest compile time, slowest runtime)
+
+[profile.dev.package."*"]
+opt-level = 3  # Optimize the dependencies at the highest level
+# Slower first build, but faster subsequent builds
+
+[profile.release]
+opt-level = 3  # full optimizations (slowest compile time, fastest runtime)
+lto = true  # link-time optimizations (slower compile time, faster runtime)``
+# the link-time optimizations means that the compiler will optimize the code
+# across the whole program, not just the current crate

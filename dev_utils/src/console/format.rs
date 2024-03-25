@@ -68,7 +68,7 @@
 ///
 /// Note: This function is intended for use with ANSI terminal emulators that support
 /// ANSI color codes. The behavior may vary on terminals that do not support ANSI codes.
-pub fn set_fg(string: &str, fg: impl Into<String>) -> String {
+pub fn set_fg(string: impl Into<String>, fg: impl Into<String>) -> String {
     format!("\x1b[{}m{}\x1b[0m", match fg.into().as_str() {
         "r" | "red" => "31",       // Red
         "g" | "green" => "32",     // Green
@@ -77,7 +77,7 @@ pub fn set_fg(string: &str, fg: impl Into<String>) -> String {
         "m" | "magenta" => "35",   // Magenta
         "y" | "yellow" => "33",    // Yellow
         _ => "0",                  // Default (reset color)
-    }, string)
+    }, string.into())
 }
 
 
