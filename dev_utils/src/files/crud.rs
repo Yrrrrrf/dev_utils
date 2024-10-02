@@ -34,7 +34,7 @@
 use std::fmt::format;
 use std::fs::{File, OpenOptions, self};
 use std::io::{self, Read, Write, Error};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 
 // ? Files ---------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -65,18 +65,12 @@ use std::path::Path;
 /// let result = create_file(path, filename, content);
 /// assert!(result.is_ok());
 /// ```
+// todo: Update it to now also return the file-path of the created file.
 pub fn create_file(path: &str, filename: &str, content: &str) -> Result<String, io::Error> {
-    let file_path = Path::new(path).join(filename);
-
-    let mut file = match File::create(&file_path) {
-        Ok(file) => file,
-        Err(e) => return Err(e),
-    };
-
-    match file.write_all(content.as_bytes()) {
-        Ok(_) => Ok(format!("Successfully created file: {}", file_path.display())),
-        Err(e) => Err(e),
-    }
+    let file_path = Path::new(path).join(filename);  // Get the full path to store the file.
+    let mut file = File::create(&file_path)?;  // Create the file.
+    file.write_all(content.as_bytes())?;  // Write the content to the file.
+    Ok(format!("Successfully created file: {file_path:?}"))
 }
 
 
@@ -113,11 +107,7 @@ pub fn create_file(path: &str, filename: &str, content: &str) -> Result<String, 
 /// ```
 pub fn read_file(path: &str, filename: &str) -> Result<String, io::Error> {
     let file_path = Path::new(path).join(filename);
-
-    let mut file = match File::open(&file_path) {
-        Ok(file) => file,
-        Err(e) => return Err(e),
-    };
+    let mut file = File::open(&file_path)?;  // Open the file.
 
     let mut content = String::new();
     match file.read_to_string(&mut content) {
@@ -157,7 +147,6 @@ pub fn read_file(path: &str, filename: &str) -> Result<String, io::Error> {
 /// ```
 pub fn update_file(path: &str, filename: &str, content: &str) -> Result<String, io::Error> {
     let file_path = Path::new(path).join(filename);
-
     let mut file = match OpenOptions::new()
         .write(true)  // Open the file in write mode.
         .create(true)  // Create the file if it does not exist.

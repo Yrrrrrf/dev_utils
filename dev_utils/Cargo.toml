@@ -19,8 +19,10 @@ keywords = ["development", "utils", "utilities", "dev"]
 
 
 [dependencies]
+console = "0.15.*"  # console output (https://crates.io/crates/console)
+
 # todo: Remove all dependencies to make it a standalone crate...
-log = "0.*"  # logging (https://crates.io/crates/log)
+# log = "0.*"  # logging (https://crates.io/crates/log)
 # dev_macros = { path = "../dev_macros" }
 
 
