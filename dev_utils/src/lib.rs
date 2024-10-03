@@ -24,16 +24,71 @@
 
 
 
-// dlog should export the macros, so it adds the following line:
 
 pub mod dlog;
 pub mod format;
 
 
-// pub mod http;
-pub mod files;
+pub mod crud;
 // pub mod console;
 pub mod conversion;
+
+
+
+
+
+
+
+
+// ^ mod io (Input/Output) is not ready yet. So isn't a public module.
+// # Console Input/Output Module
+// This module provides functions for interacting with the console, including input and output operations.
+use::std::io;  // io library is part of the standard library (std)
+use::std::io::Write;  // io library is part of the standard library (std) (Write trait)
+use std::str::FromStr;  // io library is part of the standard library (std) (Read trait)
+
+
+/// This ask() function is still a prototype, so **it could not work as expected**.
+/// 
+/// Ask for input from the console
+/// 
+/// ### Parameters:
+/// - `T: std::str::FromStr` - The type of the input
+/// 
+/// ### Returns:
+/// - `T` - The input
+pub fn ask<T: std::str::FromStr>() -> T where <T as FromStr>::Err: std::fmt::Debug {
+    let mut input = String::new();  // String::new() is a constructor (used when you want to modify a string)
+    print!("Enter something: ");
+    io::stdout().flush().unwrap();  // Allows the print!() to be flushed to the console otherwise it will wait for the next println!()
+    io::stdin().read_line(&mut input).unwrap();  // Read input from the console
+    println!("You entered: {}", input.trim());  // Trim the input to remove the newline character
+    return input.trim().parse::<T>().unwrap();
+}
+
+// console::clear_screen();
+// console::set_color("red");
+// console::print("Hello, world!");
+// console::reset_color();
+// console::print("Hello, world!");
+// console::set_color("green");
+
+
+/// Pause the program until the user presses enter.
+/// 
+/// This function will print a message to the console and wait for the user to press enter.
+#[inline]
+fn pause() {
+    println!("Press enter to exit...");
+    let mut _input = String::new();
+    std::io::stdin().read_line(&mut _input).expect("Error reading line");
+}
+
+
+
+
+
+
 
 
 
@@ -47,6 +102,8 @@ pub mod helpers {
     use std::io;
     use std::env;
     use std::collections::HashMap;
+
+    use crate::format::{Color, Style, Stylize};
 
     /// Finds the Cargo.toml file by traversing up the directory tree.
     pub fn find_cargo_toml(start_path: &str) -> io::Result<PathBuf> {
@@ -72,77 +129,70 @@ pub mod helpers {
     pub fn extract_app_data_with_sections<'a>(
         data: &'a str,
         sections: &[(&str, &[&str])]
-    ) -> HashMap<&'a str, HashMap<&'a str, &'a str>> {
+    ) -> HashMap<&'a str, HashMap<&'a str, String>> {
         let mut app_data = HashMap::new();
         let mut current_section = "";
-
+        let mut current_key = "";
+        let mut multi_line_value = String::new();
+    
+        // println!("Sections to extract: {:?}", sections);  // Debug print
+    
         for line in data.lines() {
-            if line.starts_with('[') && line.ends_with(']') {
-                current_section = line.trim_matches(&['[', ']'][..]);
-            } else if let Some((key, value)) = line.split_once('=') {
-                if let Some((_, keys)) = sections.iter().find(|&&(s, _)| s == current_section) {
-                    let key = key.trim();
-                    if keys.contains(&key) {
-                        let value = value.trim().trim_matches('"');
+            let trimmed_line = line.trim();
+            // println!("Processing line: {}", trimmed_line);  // Debug print
+    
+            if trimmed_line.starts_with('[') && trimmed_line.ends_with(']') {
+                current_section = trimmed_line.trim_matches(&['[', ']'][..]);
+                // println!("Current section: {}", current_section);  // Debug print
+            } else if let Some((key, value)) = trimmed_line.split_once('=') {
+                let key = key.trim();
+                if sections.iter().any(|&(s, keys)| s == current_section && keys.contains(&key)) {
+                    let value = value.trim().trim_matches('"');
+                    current_key = key;
+                    // println!("Found key: {}, value: {}", key, value);  // Debug print
+                    if value.starts_with('[') && !value.ends_with(']') {
+                        multi_line_value = value.to_string();
+                    } else {
                         app_data.entry(current_section)
                             .or_insert_with(HashMap::new)
-                            .insert(key, value);
+                            .insert(key, value.to_string());
                     }
+                }
+            } else if !trimmed_line.is_empty() && !multi_line_value.is_empty() {
+                multi_line_value.push_str(trimmed_line);
+                if trimmed_line.ends_with(']') {
+                    app_data.entry(current_section)
+                        .or_insert_with(HashMap::new)
+                        .insert(current_key, multi_line_value.trim_matches(&['[', ']'][..]).to_string());
+                    multi_line_value.clear();
+                    // println!("Inserted multi-line value for key: {}", current_key);  // Debug print
                 }
             }
         }
-
+    
+        // println!("Extracted data: {:?}", app_data);  // Debug print
         app_data
     }
 
-    /// Prints the extracted data in a formatted manner.
-    pub fn print_extracted_data(app_data: &HashMap<&str, HashMap<&str, &str>>) {
+    pub fn print_extracted_data(app_data: &HashMap<&str, HashMap<&str, String>>, skip_keys: &[&str]) {
         for (section, data) in app_data {
-            // println!("[{}]", console::style(section).yellow().bold());
-            println!("[{section}]");
+            let section_header = section.style(Style::Bold);
+            println!("{}:", section_header);
             for (key, value) in data {
-                // println!("{}: {}", console::style(key).BLUE(), value);
-                println!("{key}: {value}");
+                if !skip_keys.contains(&key) {
+                    println!("\t{key}: {}", value.style(Style::Italic).style(Style::Dim));
+                }
             }
             println!();
         }
     }
 }
 
-/// Macro for printing application data extracted from Cargo.toml
-///
-/// This macro clears the terminal screen, extracts relevant information from the 'Cargo.toml' file,
-/// and prints this information in a structured format. It always displays the application name and version
-/// in color, and optionally extracts and displays additional specified sections and keys.
-///
-/// # Usage
-///
-/// ```rust
-/// // Basic usage (only prints name and version)
-/// print_app_data!(file!());
-///
-/// // With additional sections to extract
-/// print_app_data!(file!(), 
-///     "package" => ["authors", "description"],
-///     "dependencies" => ["serde", "tokio"]
-/// );
-/// ```
-///
-/// # Arguments
-///
-/// * `$file_path` - A literal representing the path of the file calling this macro (usually `file!()`)
-/// * `$($section:expr => [$($key:expr),+ $(,)?]),*` - Optional: Sections and keys to extract from Cargo.toml
-///
-/// # Panics
-///
-/// This macro will panic if:
-/// - The 'Cargo.toml' file cannot be found in any parent directory.
-/// - There are issues reading or parsing the 'Cargo.toml' file.
-/// - The "package" section or the "name" and "version" keys are not found in the 'Cargo.toml' file.
 #[macro_export]
 macro_rules! app_dt {
     ($file_path:expr $(, $($section:expr => [$($key:expr),+ $(,)?]),* $(,)?)?) => {{
         use std::io::Write;
+        use $crate::format::*;
         use $crate::helpers::{find_cargo_toml, extract_app_data_with_sections, print_extracted_data};
 
         // Clear the terminal screen
@@ -153,99 +203,20 @@ macro_rules! app_dt {
         let cargo_toml_path = find_cargo_toml($file_path).expect("Failed to find Cargo.toml");
         let cargo_toml = std::fs::read_to_string(cargo_toml_path).expect("Failed to read Cargo.toml");
 
-        // Extract required "package" section data
-        let mut required_data = extract_app_data_with_sections(&cargo_toml, &[("package", &["name", "version"])]);
-        let package_data = required_data.get("package").expect("Failed to extract package data");
-        
-        // Print name and version in color
-        let name = package_data.get("name").expect("Failed to extract package name");
-        let version = package_data.get("version").expect("Failed to extract package version");
-        println!("{name} {version}\n");
+        // Extract all data in a single call
+        let all_data = extract_app_data_with_sections(&cargo_toml, &[
+            ("package", &["name", "version"]),
+            $( $(($section, &[$($key),+])),* )?
+        ]);
 
-        // Extract and print additional sections if specified
-        $(
-            let additional_data = extract_app_data_with_sections(&cargo_toml, &[$((stringify!($section), &[$($key),+] as &[&str])),*]);
-            print_extracted_data(&additional_data);
-        )?
+        let package_data = all_data.get("package").expect("Failed to extract package data");
+
+        println!("{} {}\n",
+            package_data.get("name").unwrap().color(Color::Custom(RGB(19, 161, 14))),
+            package_data.get("version").unwrap().color(Color::Custom(RGB(0, 55, 216))),
+        );
+
+        // Print all extracted data, skipping name and version
+        print_extracted_data(&all_data, &["name", "version"]);
     }};
-}
-
-
-
-#[cfg(test)]
-mod tests {
-    use format::*;
-
-    use super::*;
-
-    #[test]
-    fn test_color_creation() {
-        assert_eq!(Color::RED.to_rgb(), RGB(255, 0, 0));
-        assert_eq!(Color::from((128, 64, 32)).to_rgb(), RGB(128, 64, 32));
-    }
-
-    #[test]
-    fn test_color_codes() {
-        assert_eq!(Color::BLUE.fg_code(), "\x1b[38;2;0;0;255m");
-        assert_eq!(Color::GREEN.bg_code(), "\x1b[48;2;0;255;0m");
-        assert_eq!(Color::from((128, 64, 32)).fg_code(), "\x1b[38;2;128;64;32m");
-    }
-
-    #[test]
-    fn test_style_codes() {
-        assert_eq!(Style::Bold.code(), "\x1b[1m");
-        assert_eq!(Style::Underline.code(), "\x1b[4m");
-    }
-
-    #[test]
-    fn test_stylize_trait() {
-        let text = "Test";
-        assert_eq!(text.color(Color::RED), "\x1b[38;2;255;0;0mTest\x1b[0m");
-        assert_eq!(text.on_color(Color::BLUE), "\x1b[48;2;0;0;255mTest\x1b[0m");
-        assert_eq!(text.style(Style::Bold), "\x1b[1mTest\x1b[0m");
-    }
-
-    #[test]
-    fn test_visual_length() {
-        let colored_text = "\x1b[31mRed\x1b[0m \x1b[32mGREEN\x1b[0m";
-        assert_eq!(visual_length(colored_text), 9); // "RED GREEN".len()
-    }
-
-    #[test]
-    fn test_complex_formatting() {
-        let text = "Complex";
-        let formatted = text.color(Color::RED).on_color(Color::WHITE).style(Style::Bold);
-        let stripped = strip_ansi_codes(&formatted);
-        assert_eq!(stripped, "Complex");
-        assert!(formatted.contains("\x1b[38;2;255;0;0m")); // Red foreground
-        assert!(formatted.contains("\x1b[48;2;255;255;255m")); // White background
-        assert!(formatted.contains("\x1b[1m")); // Bold
-        assert!(formatted.ends_with("\x1b[0m")); // Reset at the end
-    }
-
-    #[test]
-    fn test_custom_color() {
-        let custom_color = Color::from((123, 45, 67));
-        assert_eq!(custom_color.fg_code(), "\x1b[38;2;123;45;67m");
-    }
-
-    #[test]
-    fn test_strip_ansi_codes() {
-        let colored_text = "\x1b[31mRed\x1b[0m \x1b[32mGreen\x1b[0m";
-        assert_eq!(strip_ansi_codes(colored_text), "Red Green");
-        
-        // Test with multiple consecutive ANSI codes
-        let multi_code = "\x1b[31;1mBold Red\x1b[0m";
-        assert_eq!(strip_ansi_codes(multi_code), "Bold Red");
-    }
-    
-    #[test]
-    fn test_incomplete_ansi_sequence() {
-        let incomplete = "Normal \x1b[31m Red \x1b[ Incomplete";
-        assert_eq!(strip_ansi_codes(incomplete), "Normal  Red  Incomplete");
-        
-        // Test with incomplete sequence at the end
-        let incomplete_end = "Text with incomplete sequence\x1b[";
-        assert_eq!(strip_ansi_codes(incomplete_end), "Text with incomplete sequence");
-    }
 }

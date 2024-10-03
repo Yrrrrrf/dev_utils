@@ -28,11 +28,11 @@ macro_rules! define_levels {
 }
 
 define_levels! {
-    Trace => 1, "\x1b[35;1m",  // Bold Magenta
-    Debug => 2, "\x1b[36;1m",  // Bold Cyan
+    Trace => 5, "\x1b[35;1m",  // Bold Magenta
+    Debug => 4, "\x1b[36;1m",  // Bold Cyan
     Info  => 3, "\x1b[32;1m",  // Bold Green
-    Warn  => 4, "\x1b[33;1m",  // Bold Yellow
-    Error => 5, "\x1b[31;1m",  // Bold Red
+    Warn  => 2, "\x1b[33;1m",  // Bold Yellow
+    Error => 1, "\x1b[31;1m",  // Bold Red
 }
 
 static MAX_LOG_LEVEL: AtomicUsize = AtomicUsize::new(0);
@@ -60,6 +60,9 @@ fn strip_ansi_escapes(src_str: &str) -> String {
     result
 }
 
+
+
+
 pub trait DlogStyle {
     fn format_log(&self, level: &Level, args: fmt::Arguments) -> String {
         let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
@@ -83,13 +86,21 @@ pub trait DlogStyle {
         let prefix = format!("{} {} ", timestamp, level_str);
         let content_start = strip_ansi_escapes(&prefix).len();
 
+        let binding = args.to_string();
+        let lines: Vec<&str> = binding.lines().collect();
+        let line_count = lines.len();
+
         let mut output = String::new();
-        for (i, line) in args.to_string().lines().enumerate() {
+        for (i, line) in lines.into_iter().enumerate() {
             match i {
                 0 => output.push_str(&format!("{}{}", prefix, line)),
+                _ if i == line_count - 1 => output.push_str(&format!("\n{}{} {line}", 
+                    " ".repeat(content_start - 2),  // indent
+                    self.level_color(level, "└")  // color the last line with bottom-left corner
+                )),
                 _ => output.push_str(&format!("\n{}{} {line}", 
                     " ".repeat(content_start - 2),  // indent
-                    self.level_color(level, "│")  // color the line
+                    self.level_color(level, "│")  // color the middle lines
                 )),
             }
         }
@@ -100,6 +111,8 @@ pub trait DlogStyle {
         format!("{}{}\x1b[0m", level.color_code(), msg)
     }
 }
+
+
 
 pub struct DefaultDlogStyle;
 
