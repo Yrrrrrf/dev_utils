@@ -49,7 +49,6 @@ fn showcase_log_levels() {
     println!("\n{}", "Log Level restored to Trace.".style(Style::Bold).color(Color::GREEN));
 }
 
-
 fn showcase_log_formatting() {
     println!("\n{}", "Enhanced Log Formatting Features:".style(Style::Bold).style(Style::Italic));
 
@@ -64,7 +63,7 @@ fn showcase_log_formatting() {
     ];
 
     debug!("Logging multi-line structured data:\n{}",
-        user_data.iter().map(|(key, value)| format!("{}: {}", key, value))
+        user_data.iter().map(|(key, value)| format!("\t{}: {}", key, value))
         .collect::<Vec<_>>().join("\n")
     );
 
@@ -83,17 +82,28 @@ fn showcase_log_formatting() {
     let now = DateTime::now();
     info!("Current timestamp: {}", now);
 
+    // todo: Add full compatibility with thie multiline log
+    let err_dt = vec![
+        ("Code", "404"),
+        ("Message", "Resource not found"),
+        ("File", file!()),
+    ];
+    // iter over all the data on err_dt and apply the dim style to all the values
+    let err_dt = err_dt.iter().map(|(key, value)| (key, value.style(Style::Dim))).collect::<Vec<_>>();
+
     // Multi-line error simulation
-    error!(
-        "Error encountered:\n\
-         \tCode: 404\n\
-         \tMessage: Resource not found\n\
-         \tFile: {}\n\
-         \tLine: {}",
-        file!(),
-        line!()
+    error!("Error on line: {}\n{}", line!(),
+        err_dt.iter().map(|(key, value)| format!("\t{}: {}", key, value))
+        .collect::<Vec<_>>().join("\n")
     );
+
+
+    // same as above but using the str in plain text
+    info!("Error on line: {}\n{}", line!(),  "\tCode: 404\n\tMessage: Resource not found\n\tFile: dev_utils/examples/dlog.rs"
+    .style(Style::Italic));
+
 }
+
 
 
 // = Time to log 10000 messages: 352.6482ms
@@ -138,7 +148,6 @@ fn showcase_log_use_cases() {
 
     info!("Data processing completed successfully");
 }
-
 
 fn showcase_datetime_features() {
     println!("\n{}", "DateTime Features:".style(Style::Bold).style(Style::Italic));

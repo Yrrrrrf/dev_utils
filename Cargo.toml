@@ -3,7 +3,7 @@ resolver = "2"
 members = [
     # external crates
     "dev_utils",
-    "dev_macros",
+    # "dev_macros",
     # internal crates (for usage in the workspace)
 ]
 

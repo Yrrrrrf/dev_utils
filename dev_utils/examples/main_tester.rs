@@ -11,26 +11,7 @@ fn main() {
     // app_dt!(file!(), "package" => ["license", "keywords"]);
 
 
-    // Test logging
-    test_logging();
     // test_base_conversion();
-}
-
-
-fn test_logging() {
-    // Uncomment to set different log levels
-    set_max_level(Level::Trace);    // trace all logs
-    // set_max_level(Level::Debug); // debug & info & warn & error logs
-    // set_max_level(Level::Info);  // info & warn & error logs
-    // set_max_level(Level::Warn);  // warn & error logs
-    // set_max_level(Level::Error); // error logs
-
-    trace!("Trace log\nepilepsia\nesclavo del mal\ndaño cerebral\ndaño cerebral\npermanente");
-    debug!("Debug log\n\nwith multiple lines");
-    info!("Info log");
-    info!("Info log");
-    warn!("Warning log\n\nwith empty lines");
-    error!("Error log\n\n\n\n\nwith many empty lines");
 }
 
 

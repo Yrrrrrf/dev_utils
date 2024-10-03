@@ -23,6 +23,8 @@
 #![allow(unused)]
 
 
+// * add the 'dcrypt' module 
+// * dev-cryptography
 
 
 pub mod dlog;

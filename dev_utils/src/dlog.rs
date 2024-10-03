@@ -62,7 +62,6 @@ fn strip_ansi_escapes(src_str: &str) -> String {
 
 
 
-
 pub trait DlogStyle {
     fn format_log(&self, level: &Level, args: fmt::Arguments) -> String {
         let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
@@ -87,23 +86,26 @@ pub trait DlogStyle {
         let content_start = strip_ansi_escapes(&prefix).len();
 
         let binding = args.to_string();
-        let lines: Vec<&str> = binding.lines().collect();
+        let (lines, overall_style) = parse_styled_lines(&binding);
         let line_count = lines.len();
 
         let mut output = String::new();
         for (i, line) in lines.into_iter().enumerate() {
-            match i {
-                0 => output.push_str(&format!("{}{}", prefix, line)),
-                _ if i == line_count - 1 => output.push_str(&format!("\n{}{} {line}", 
-                    " ".repeat(content_start - 2),  // indent
-                    self.level_color(level, "└")  // color the last line with bottom-left corner
-                )),
-                _ => output.push_str(&format!("\n{}{} {line}", 
-                    " ".repeat(content_start - 2),  // indent
-                    self.level_color(level, "│")  // color the middle lines
-                )),
-            }
+            let formatted_line = if i == 0 {
+                format!("{}{}{}", prefix, overall_style, line)
+            } else {
+                let line_prefix = if i == line_count - 1 { "└" } else { "│" };
+                format!("\n{}{} {}{}", 
+                    " ".repeat(content_start - 2),
+                    self.level_color(level, line_prefix),
+                    overall_style,
+                    line
+                )
+            };
+            output.push_str(&formatted_line);
         }
+        // Add the reset code at the very end
+        output.push_str("\x1b[0m");
         output
     }
 
@@ -112,12 +114,29 @@ pub trait DlogStyle {
     }
 }
 
+fn parse_styled_lines(input: &str) -> (Vec<String>, String) {
+    let mut lines = Vec::new();
+    let mut overall_style = String::new();
+
+    for line in input.lines() {
+        if line.starts_with("\x1b[") {
+            let style_end = line.find('m').map(|i| i + 1).unwrap_or(0);
+            overall_style = line[..style_end].to_string();
+            lines.push(line[style_end..].to_string());
+        } else {
+            lines.push(line.to_string());
+        }
+    }
+
+    (lines, overall_style)
+}
+
+
 
 
 pub struct DefaultDlogStyle;
 
 impl DlogStyle for DefaultDlogStyle {}
-
 
 pub fn log(style: &impl DlogStyle, level: Level, args: fmt::Arguments) {
     if enabled(level) {
@@ -125,6 +144,7 @@ pub fn log(style: &impl DlogStyle, level: Level, args: fmt::Arguments) {
         println!("{}", log_message);
     }
 }
+
 
 
 #[macro_export]
