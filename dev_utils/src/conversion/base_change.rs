@@ -2,7 +2,7 @@ use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct BigUint {
-    digits: Vec<u8>,
+    digits: Vec<u8>,  // any number N base u8 (2^8 = 256 -> 0..=255)
 }
 
 impl BigUint {

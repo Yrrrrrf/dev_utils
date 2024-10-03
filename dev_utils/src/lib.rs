@@ -176,8 +176,7 @@ pub mod helpers {
 
     pub fn print_extracted_data(app_data: &HashMap<&str, HashMap<&str, String>>, skip_keys: &[&str]) {
         for (section, data) in app_data {
-            let section_header = section.style(Style::Bold);
-            println!("{}:", section_header);
+            println!("{}:", section.style(Style::Bold));
             for (key, value) in data {
                 if !skip_keys.contains(&key) {
                     println!("\t{key}: {}", value.style(Style::Italic).style(Style::Dim));
@@ -211,12 +210,14 @@ macro_rules! app_dt {
 
         let package_data = all_data.get("package").expect("Failed to extract package data");
 
-        println!("{} {}\n",
-            package_data.get("name").unwrap().color(Color::Custom(RGB(19, 161, 14))),
-            package_data.get("version").unwrap().color(Color::Custom(RGB(0, 55, 216))),
+        println!("{} v{}\n",
+            package_data.get("name").unwrap().color(Color::Custom(RGB(16, 192, 16))),
+            package_data.get("version").unwrap().color(Color::Custom(RGB(8, 64, 224))).style(Style::Italic),
         );
 
-        // Print all extracted data, skipping name and version
-        print_extracted_data(&all_data, &["name", "version"]);
+        // Only print additional data if any optional fields were provided
+        if all_data.len() > 1 || all_data.get("package").map_or(false, |p| p.len() > 2) {
+            print_extracted_data(&all_data, &["name", "version"]);
+        }
     }};
 }
