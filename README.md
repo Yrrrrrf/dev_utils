@@ -6,9 +6,10 @@
 
 Welcome to the Dev Utils Project! This repository contains a collection of Rust crates and utilities designed to streamline development processes and provide helpful tools for various programming tasks.
 
+
 ## Project Structure
 
-The project is organized using Rust workspaces, allowing for modular development and easy management of multiple related crates. Here's an overview of the project structure:
+The crate is organized using Rust workspaces, allowing for modular development and easy management of multiple related crates. The main crate is located in the [`dev_utils`](./dev_utils/) directory, with additional crates and utilities located in subdirectories.
 
 ```bash
 dev_utils/
@@ -16,16 +17,16 @@ dev_utils/
 │   # Main crate
 ├── dev_utils/
 │   ├── Cargo.toml
-│   ├── src/
-│   │   ├── lib.rs
-│   │   └── ...  # main source files
+│   ├── src/  # main source files
+│   │   ├── lib.rs  # crate entry point
+│   │   └── ...
 │   ├── examples/  # Example applications
-│   └── README.md
+│   └── README.md  # dev_utils crate README
 │   # Custom macros (not yet implemented)
 ├── dev_macros/
 │   ├── Cargo.toml
 │   └── src/lib.rs
-└── README.md (this file)
+└── README.md   # this file
 ```
 
 ## Getting Started

@@ -6,6 +6,9 @@
 
 `dev_utils` is a collection of utilities for use in development. Designed to be a comprehensive crate, containing a wide variety of tools for use in development. **Intended to be used as a dependency in other projects**, and as such, it is designed to be as modular as possible, allowing users to only include the features they need.
 
+
+V0.1.1-rc.1
+
 ## Features
 - [x] `dlog` - dev log instance different from the `log` crate but same macros
 - [x] `datetime` - UNIX timestamp, and date and time utilities
@@ -18,7 +21,7 @@
 To use this crate, add the following to your [`Cargo.toml`](Cargo.toml) file:
 ```toml
 [dependencies]
-dev_utils = "0.15"  # or the latest version
+dev_utils = "0.1.*"
 ```
 
 ## Usage
@@ -32,6 +35,7 @@ fn main() {
     // some new logic w/ a clean slate
 }
 ```
+
 <!--
 - [ ] `readline` - Interactive readline (for use in a REPL (interactive shell))
 - [ ] `serde` - Serialize and deserialize data
@@ -41,7 +45,3 @@ fn main() {
     - [ ] `cipher` - Cipher utilities
     - [ ] `key` - Key utilities
 -->
-
-## [License](LICENSE)
-
-This project is licensed under the terms of the [MIT license](./LICENSE)
