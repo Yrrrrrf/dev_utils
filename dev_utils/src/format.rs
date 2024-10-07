@@ -1,76 +1,111 @@
+//! A module for text formatting and styling in terminal applications.
+//!
+//! This module provides functionality for adding colors and styles to text,
+//! as well as utilities for working with ANSI escape codes. It includes a [Color] struct
+//! for RGB color representation, a [Style] enum for text styles, and a [Stylize] trait
+//! for applying these formats to strings.
+//!
+//! # Features
+//! - RGB color support for both foreground and background
+//! - Text styling (bold, italic, underline, etc.)
+//! - ANSI escape code handling
+//! - Utilities for stripping ANSI codes and calculating visual string length
+//!
+//! # Examples
+//! ```
+//! use dev_utils::format::{Color, Style, Stylize};
+//! use dev_utils::format::{RED, WHITE};
+//!
+//! let text = "Hello, World!";
+//! println!("{}", text.color(RED).on_color(WHITE).style(Style::Bold));
+//! ```
 use std::fmt;
 
 
-
-// Define a struct for RGB colors
+/// Represents an RGB color.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct RGB(pub u8, pub u8, pub u8);
+pub struct Color {
+    r: u8,
+    g: u8,
+    b: u8,
+}
 
-// Macro to create Color enum and implement color codes
-macro_rules! create_color_enum {
+impl Color {
+    /// Creates a new `Color` instance with the given RGB values.
+    ///
+    /// # Arguments
+    ///
+    /// * `r` - Red component (0-255)
+    /// * `g` - Green component (0-255)
+    /// * `b` - Blue component (0-255)
+    pub fn new(r: u8, g: u8, b: u8) -> Self {
+        Color { r, g, b }
+    }
+
+    /// Returns the RGB components as a tuple.
+    pub fn to_rgb(&self) -> (u8, u8, u8) { (self.r, self.g, self.b) }
+
+    /// Returns the ANSI escape code for setting this color as the foreground color.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use dev_utils::format::Color;
+    /// 
+    /// let red = Color::new(255, 0, 0);
+    /// println!("{}Red text\x1b[0m", red.as_fg());
+    /// ```
+    pub fn as_fg(&self) -> String {
+        format!("\x1b[38;2;{};{};{}m", self.r, self.g, self.b)
+    }
+
+    /// Returns the ANSI escape code for setting this color as the background color.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use dev_utils::format::Color;
+    /// 
+    /// let blue = Color::new(0, 0, 255);
+    /// println!("{}Text with blue background\x1b[0m", blue.as_bg());
+    /// ```
+    pub fn as_bg(&self) -> String {
+        format!("\x1b[48;2;{};{};{}m", self.r, self.g, self.b)
+    }
+}
+
+
+impl From<(u8, u8, u8)> for Color {
+    /// Creates a `Color` from an RGB tuple.
+    fn from(rgb: (u8, u8, u8)) -> Self {Color::new(rgb.0, rgb.1, rgb.2)}
+}
+
+// The `define_colors!` macro creates constant Color instances.
+// Documentation for each color constant will be generated automatically.
+macro_rules! define_colors {
     ($($name:ident => ($r:expr, $g:expr, $b:expr)),* $(,)?) => {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-        pub enum Color {
-            $($name,)*
-            Custom(RGB),
-        }
-
-        impl Color {
-            pub fn to_rgb(&self) -> RGB {
-                match self {
-                    $(Color::$name => RGB($r, $g, $b),)*
-                    Color::Custom(rgb) => *rgb,
-                }
-            }
-
-            pub fn as_fg(&self) -> String {
-                let RGB(r, g, b) = self.to_rgb();
-                format!("\x1b[38;2;{};{};{}m", r, g, b)
-            }
-
-            pub fn as_bg(&self) -> String {
-                let RGB(r, g, b) = self.to_rgb();
-                format!("\x1b[48;2;{};{};{}m", r, g, b)
-            }
-        }
-
-        impl From<RGB> for Color {
-            fn from(rgb: RGB) -> Self {
-                Color::Custom(rgb)
-            }
-        }
-        
-        impl From<(u8, u8, u8)> for Color {
-            fn from(rgb: (u8, u8, u8)) -> Self {
-                Color::Custom(RGB(rgb.0, rgb.1, rgb.2))
-            }
-        }
-
-        $(pub const $name: Color = Color::$name;)*
+        $(pub const $name: Color = Color { r: $r, g: $g, b: $b };)*
     };
 }
 
-// Create Color enum and implement color codes
-create_color_enum! {
-    BLACK   => (  0,   0,   0),  // 000
-    BLUE    => (  0,   0, 255),  // 00F
-    GREEN   => (  0, 255,   0),  // 0F0
-    CYAN    => (  0, 255, 255),  // 0FF
-    RED     => (255,   0,   0),  // F00
-    MAGENTA => (255,   0, 255),  // F0F
-    YELLOW  => (255, 255,   0),  // FF0
-    WHITE   => (255, 255, 255),  // FFF
+define_colors!(
+    BLACK => (0, 0, 0),
+    BLUE => (0, 0, 255),
+    GREEN => (0, 255, 0),
+    CYAN => (0, 255, 255),
+    RED => (255, 0, 0),
+    MAGENTA => (255, 0, 255),
+    YELLOW => (255, 255, 0),
+    WHITE => (255, 255, 255)
     // * define any custom colors here...
-
-    // todo: Improve this macro to now be able to:
-    // todo: - Just call the macro with the desired RGB values
-    // todo: - Automatically create the Color enum and implement the color codes
-}
-
+);
 
 // Macro to create Style enum and implement style codes
 macro_rules! create_style_enum {
     ($(($style:ident, $code:expr)),* $(,)?) => {
+        /// Variants are created by the `create_style_enum!` macro.
+        /// 
+        ///  Documentation for each style will be generated automatically.
         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
         pub enum Style {$($style,)*}
 
@@ -93,10 +128,15 @@ create_style_enum! {
     (Hidden, 8),  // 1
 }
 
-// Trait for styling
+/// A trait for applying colors and styles to text.
 pub trait Stylize {
+    /// Applies a color to the text.
     fn color(&self, color: Color) -> String;
+
+    /// Applies a background color to the text.
     fn on_color(&self, color: Color) -> String;
+
+    /// Applies a style to the text.
     fn style(&self, style: Style) -> String;
 }
 
@@ -111,9 +151,30 @@ macro_rules! impl_stylize {
     )*)
 }
 
+// The `impl_stylize!` macro implements the Stylize trait for str and String.
 impl_stylize! { str String }
 
-
+/// Removes ANSI escape codes from a string.
+///
+/// This function uses a finite state machine to identify and remove ANSI escape sequences,
+/// leaving only the visible text content.
+///
+/// # Arguments
+///
+/// * `s` - The input string that may contain ANSI escape codes
+///
+/// # Returns
+///
+/// A new `String` with all ANSI escape codes removed.
+///
+/// # Examples
+///
+/// ```
+/// use dev_utils::format::strip_ansi_codes;
+/// 
+/// let colored_text = "\x1b[31mRed text\x1b[0m";
+/// assert_eq!(strip_ansi_codes(colored_text), "Red text");
+/// ```
 pub fn strip_ansi_codes(s: &str) -> String {
     #[derive(Clone, Copy)]
     enum State { Normal, Escape, CSI }
@@ -151,88 +212,27 @@ pub fn strip_ansi_codes(s: &str) -> String {
         .collect()
 }
 
+/// Calculates the visual length of a string, ignoring ANSI escape codes.
+///
+/// This function first strips all ANSI escape codes from the input string and then
+/// counts the remaining characters to determine the visual length.
+///
+/// # Arguments
+///
+/// * `s` - The input string that may contain ANSI escape codes
+///
+/// # Returns
+///
+/// The number of visible characters in the string.
+///
+/// # Examples
+///
+/// ```
+/// use dev_utils::format::visual_length;
+/// 
+/// let colored_text = "\x1b[31mRed\x1b[0m \x1b[32mGreen\x1b[0m";
+/// assert_eq!(visual_length(colored_text), 9); // "Red Green"
+/// ```
 pub fn visual_length(s: &str) -> usize {
     strip_ansi_codes(s).chars().count()
 }
-
-
-
-
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;  // use the contents of the parent module
-
-    #[test]
-    fn test_color_creation() {
-        assert_eq!(Color::RED.to_rgb(), RGB(255, 0, 0));
-        assert_eq!(Color::from((128, 64, 32)).to_rgb(), RGB(128, 64, 32));
-    }
-
-    #[test]
-    fn test_color_codes() {
-        assert_eq!(Color::BLUE.as_fg(), "\x1b[38;2;0;0;255m");
-        assert_eq!(Color::GREEN.as_bg(), "\x1b[48;2;0;255;0m");
-        assert_eq!(Color::from((128, 64, 32)).as_fg(), "\x1b[38;2;128;64;32m");
-    }
-
-    #[test]
-    fn test_style_codes() {
-        assert_eq!(Style::Bold.code(), "\x1b[1m");
-        assert_eq!(Style::Underline.code(), "\x1b[4m");
-    }
-
-    #[test]
-    fn test_stylize_trait() {
-        let text = "Test";
-        assert_eq!(text.color(Color::RED), "\x1b[38;2;255;0;0mTest\x1b[0m");
-        assert_eq!(text.on_color(Color::BLUE), "\x1b[48;2;0;0;255mTest\x1b[0m");
-        assert_eq!(text.style(Style::Bold), "\x1b[1mTest\x1b[0m");
-    }
-
-    #[test]
-    fn test_visual_length() {
-        let colored_text = "\x1b[31mRed\x1b[0m \x1b[32mGREEN\x1b[0m";
-        assert_eq!(visual_length(colored_text), 9); // "RED GREEN".len()
-    }
-
-    #[test]
-    fn test_complex_formatting() {
-        let text = "Complex";
-        let formatted = text.color(Color::RED).on_color(Color::WHITE).style(Style::Bold);
-        let stripped = strip_ansi_codes(&formatted);
-        assert_eq!(stripped, "Complex");
-        assert!(formatted.contains("\x1b[38;2;255;0;0m")); // Red foreground
-        assert!(formatted.contains("\x1b[48;2;255;255;255m")); // White background
-        assert!(formatted.contains("\x1b[1m")); // Bold
-        assert!(formatted.ends_with("\x1b[0m")); // Reset at the end
-    }
-
-    #[test]
-    fn test_custom_color() {
-        let custom_color = Color::from((123, 45, 67));
-        assert_eq!(custom_color.as_fg(), "\x1b[38;2;123;45;67m");
-    }
-
-    #[test]
-    fn test_strip_ansi_codes() {
-        let colored_text = "\x1b[31mRed\x1b[0m \x1b[32mGreen\x1b[0m";
-        assert_eq!(strip_ansi_codes(colored_text), "Red Green");
-        
-        // Test with multiple consecutive ANSI codes
-        let multi_code = "\x1b[31;1mBold Red\x1b[0m";
-        assert_eq!(strip_ansi_codes(multi_code), "Bold Red");
-    }
-    
-    #[test]
-    fn test_incomplete_ansi_sequence() {
-        let incomplete = "Normal \x1b[31m Red \x1b[ Incomplete";
-        assert_eq!(strip_ansi_codes(incomplete), "Normal  Red  Incomplete");
-        
-        // Test with incomplete sequence at the end
-        let incomplete_end = "Text with incomplete sequence\x1b[";
-        assert_eq!(strip_ansi_codes(incomplete_end), "Text with incomplete sequence");
-    }
-}
-

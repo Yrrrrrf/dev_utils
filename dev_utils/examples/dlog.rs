@@ -1,12 +1,11 @@
 use dev_utils::{
-    app_dt, conversion::datetime::{Date, DateTime, Time}, debug, dlog::*, error, format::*, info, trace, warn
+    __delay_ms, app_dt, datetime::*, dlog::{self, *}, format::*, 
 };
-use std::{str::FromStr, thread, time::Duration};
 
 fn main() {
     app_dt!(file!());
     
-    println!("\n{}", "--- dlog Showcase ---".style(Style::Bold).color(Color::CYAN));
+    println!("\n{}", "--- dlog Showcase ---".style(Style::Bold).color(CYAN));
 
     // Initialize logging
     set_max_level(Level::Trace);
@@ -33,26 +32,26 @@ fn showcase_log_levels() {
         trace!("Most detailed level, useful for step-by-step debugging");
         debug!("Useful for diagnosing issues");
         info!("General operational messages about program execution");
-        warn!("Something unexpected happened, but the program can still continue");
+        // warn!("Something unexpected happened, but the program can still continue");
         error!("A serious problem occurred, indicating potential a failure");
     }
 
     // Demonstrate log levels with different settings
-    demonstrate_log_level(Level::Trace, Color::Custom(RGB(180, 0, 158)), "Trace (all levels visible)");
-    demonstrate_log_level(Level::Debug, Color::Custom(RGB(97, 214, 214)), "Debug (Trace hidden, Debug and above visible)");
-    demonstrate_log_level(Level::Info,  Color::Custom(RGB(22, 198, 12)), "Info (Trace and Debug hidden, Info and above visible)");
-    demonstrate_log_level(Level::Warn,  Color::Custom(RGB(245, 245, 57)), "Warn (Only Warn and Error visible)");
-    demonstrate_log_level(Level::Error, Color::Custom(RGB(231, 72, 86)), "Error (Only Error logs visible)");
+    demonstrate_log_level(Level::Trace, Color::new(180,   0, 158), "Trace (all levels visible)");
+    demonstrate_log_level(Level::Debug, Color::new( 97, 214, 214), "Debug (Trace hidden, Debug and above visible)");
+    demonstrate_log_level(Level::Info,  Color::new( 22, 198,  12), "Info (Trace and Debug hidden, Info and above visible)");
+    demonstrate_log_level(Level::Warn,  Color::new(245, 245,  57), "Warn (Only Warn and Error visible)");
+    demonstrate_log_level(Level::Error, Color::new(231,  72,  86), "Error (Only Error logs visible)");
 
     // Restore Trace level at the end
     set_max_level(Level::Trace);
-    println!("\n{}", "Log Level restored to Trace.".style(Style::Bold).color(Color::GREEN));
+    println!("\n{}", "Log Level restored to Trace.".style(Style::Bold).color(GREEN));
 }
 
 fn showcase_log_formatting() {
     println!("\n{}", "Enhanced Log Formatting Features:".style(Style::Bold).style(Style::Italic));
 
-    info!("Standard log message");
+    dlog::info!("Standard log message");
 
     // Multi-line log for a simulated data structure
     let user_data = vec![
@@ -68,15 +67,14 @@ fn showcase_log_formatting() {
     );
 
     // Log a long message split across multiple lines
-    info!(
-        "This is a long log message that spans multiple lines for better readability. \
-         It demonstrates how long strings or messages can be split into readable chunks \
-         without breaking the content flow."
+    info!("This is a long log message that spans multiple lines for better readability. \
+        It demonstrates how long strings or messages can be split into readable chunks \
+        without breaking the content flow."
     );
 
     // Log with colored and styled text
-    let formatted_text = "Formatted".style(Style::Bold).color(Color::GREEN);
-    info!("Logs can include {} and {} text", formatted_text, "styled".style(Style::Italic).color(Color::MAGENTA));
+    let formatted_text = "Formatted".style(Style::Bold).color(GREEN);
+    info!("Logs can include {} and {} text", formatted_text, "styled".style(Style::Italic).color(MAGENTA));
 
     // Log the current timestamp
     let now = DateTime::now();
@@ -98,12 +96,17 @@ fn showcase_log_formatting() {
     );
 
 
+    // todo: FIX THE ERRORS OCURRED WHEN HANDLING THE MULTILINE LOG...
+    // todo: IT ALSO HAVE SOME ERROR IN WHICH THE STYLE IS APPLIED TO THE WHOLE STRING...
+    // ^ In this case, the "Some new data:" is being styled as a whole string,
+    // ^ not just the "Code: 200" and "Message: You got some successulf penchs"...
     // same as above but using the str in plain text
-    info!("Error on line: {}\n{}", line!(),  "\tCode: 404\n\tMessage: Resource not found\n\tFile: dev_utils/examples/dlog.rs"
-    .style(Style::Italic));
+    info!("Some new data:\n{}{}", 
+        "\tCode: 200\n\tMessage: You got some successulf penchs\n\t".style(Style::Underline),
+        file!().style(Style::Bold)
+    );
 
 }
-
 
 
 // = Time to log 10000 messages: 352.6482ms
@@ -127,26 +130,34 @@ fn showcase_log_use_cases() {
     // Simulating an application startup
     info!("Application starting up...");
     debug!("Initializing modules...");
-    thread::sleep(Duration::from_millis(500));
+    __delay_ms(500);
     info!("Database connection established");
-    thread::sleep(Duration::from_millis(300));
-    warn!("Config file not found, using default settings");
-    thread::sleep(Duration::from_millis(200));
+    __delay_ms(300);
+    // warn!("Config file not found, using default settings");
+    __delay_ms(200);
     error!("Failed to load user preferences");
     info!("Application startup complete");
 
     // Simulating a function call
     debug!("Entering function process_data()");
-    thread::sleep(Duration::from_millis(100));
+    __delay_ms(100);
     trace!("Processing item 1 of 3");
-    thread::sleep(Duration::from_millis(50));
+    __delay_ms(50);
     trace!("Processing item 2 of 3");
-    thread::sleep(Duration::from_millis(50));
+    __delay_ms(50);
     trace!("Processing item 3 of 3");
-    thread::sleep(Duration::from_millis(100));
+    __delay_ms(100);
     debug!("Exiting function process_data()");
 
     info!("Data processing completed successfully");
+
+    // same as above but now use a tuple to store the macro type, message, and delay, then iterate over it
+
+    // logs.iter().for_each(|(log, msg, delay)| {
+    //     log!("{}", msg);
+    //     __delay_ms(*delay);
+    // });
+
 }
 
 fn showcase_datetime_features() {
@@ -163,7 +174,7 @@ fn showcase_datetime_features() {
     info!("Custom DateTime: {}", custom_datetime);
 
     // Parsing a DateTime from a string
-    let parsed_datetime = DateTime::from_str("2023-05-01 12:34:56").unwrap();
+    let parsed_datetime: DateTime = "2023-05-01 12:34:56".parse().unwrap();
     info!("Parsed DateTime: {}", parsed_datetime);
 
     // DateTime from timestamp
@@ -171,15 +182,17 @@ fn showcase_datetime_features() {
     info!("DateTime from timestamp: {}", from_timestamp);
 
     // Demonstrating error handling
-    match Date::new(2023, 2, 29) {
+    match Date::new(2023, 2, 29) {  // 29th Feb 2023 (not a leap year)
         Ok(date) => info!("Valid date: {:?}", date),
-        Err(e) => warn!("Invalid date: {}", e),
+        Err(e) => println!("Invalid date: {}", e),
+        // Err(e) => warn!("Invalid date: {}", e),
     }
 
     // Comparing DateTimes
-    let dt1 = DateTime::from_str("2023-05-01 12:00:00").unwrap();
-    let dt2 = DateTime::from_str("2023-05-01 13:00:00").unwrap();
-    info!("Comparing DateTimes: {} is earlier than {}", dt1, dt2);
+    info!("Comparing DateTimes: {} is earlier than {}", 
+        "2023-05-01 12:00:00".parse::<DateTime>().unwrap(),
+        "2023-05-01 13:00:00".parse::<DateTime>().unwrap(), 
+    );
 
     // Demonstrating leap year
     let leap_year = 2024;

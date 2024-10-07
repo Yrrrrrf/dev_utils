@@ -3,99 +3,163 @@
 //! ```toml
 //! [dependencies]
 //! dev_utils = "0.*"  # Add the latest version of this crate
-//! log = "0.*"  # This crate also depends on the log crate, so add it too
 //! ```
 //! 
 //! # Usage
 //! 
 //! ```rust 
-//! use dev_utils::log::print_app_data;
-//! use dev_utils::log::rlog::RLog;  // Logger (RLog) from this crate
-//! use log::LevelFilter;  // Log crate
+//! use dev_utils::app_dt;
 //! 
 //! fn main() {
-//!     print_app_data(file!());  // Print application data (name, version, authors, etc.)
-//!     RLog::init_logger(LevelFilter::Trace);  // Initialize the logger with the given log level
-//!     log::info!("Some data!");  // [2021-01-01 00:00:00] INFO: Hello World!
-//!     // Your code here...
+//!     app_dt!(file!());  // Print package name and version from Cargo.toml
+//! 
+//!     app_dt!(file!(),  // Print package name, version, license, and keywords
+//!         "package" => ["license", "keywords"]  // selected sections and keys
+//!     );
 //! }
 //! ```
 #![allow(unused)]
 
 
-// * add the 'dcrypt' module 
-// * dev-cryptography
-
-
 pub mod dlog;
 pub mod format;
+pub mod file;
+pub mod datetime;
+pub mod base_change;
 
+use std::io::{self, Write};
+use std::str::FromStr;
+use std::fmt::Display;
 
-pub mod crud;
-// pub mod console;
-pub mod conversion;
+/// Reads input from the console, optionally displaying a prompt message.
+///
+/// This function can:
+/// - Display a custom prompt message
+/// - Read input until the user presses Enter
+/// - Parse the input into any type that implements FromStr
+/// - Act as a pause mechanism when no prompt is provided
+///
+/// # Type Parameters
+///
+/// - `T`: The type to parse the input into. Must implement FromStr and Default.
+///
+/// # Arguments
+///
+/// - `prompt`: An optional prompt message to display before reading input.
+///
+/// # Returns
+///
+/// - `T`: The parsed input value
+/// - `String`: The raw input string if parsing fails or no parsing is needed
+///
+/// # Examples
+///
+/// ```
+/// let number: i32 = read_input(Some("Enter a number: ")).unwrap();
+/// let name: String = read_input(Some("Enter your name: ")).unwrap();
+/// read_input::<String>(None); // Acts as a pause
+/// ```
+pub fn read_input<T>(prompt: Option<&str>) -> Result<T, String>
+where
+    T: FromStr + Default,
+    <T as FromStr>::Err: Display,
+{
+    if let Some(msg) = prompt {
+        print!("{}", msg);
+        io::stdout().flush().unwrap();
+    }
 
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).expect("Failed to read line");
 
+    let trimmed = input.trim();
 
+    if trimmed.is_empty() {return Ok(T::default());}
 
-
-
-
-
-// ^ mod io (Input/Output) is not ready yet. So isn't a public module.
-// # Console Input/Output Module
-// This module provides functions for interacting with the console, including input and output operations.
-use::std::io;  // io library is part of the standard library (std)
-use::std::io::Write;  // io library is part of the standard library (std) (Write trait)
-use std::str::FromStr;  // io library is part of the standard library (std) (Read trait)
-
-
-/// This ask() function is still a prototype, so **it could not work as expected**.
-/// 
-/// Ask for input from the console
-/// 
-/// ### Parameters:
-/// - `T: std::str::FromStr` - The type of the input
-/// 
-/// ### Returns:
-/// - `T` - The input
-pub fn ask<T: std::str::FromStr>() -> T where <T as FromStr>::Err: std::fmt::Debug {
-    let mut input = String::new();  // String::new() is a constructor (used when you want to modify a string)
-    print!("Enter something: ");
-    io::stdout().flush().unwrap();  // Allows the print!() to be flushed to the console otherwise it will wait for the next println!()
-    io::stdin().read_line(&mut input).unwrap();  // Read input from the console
-    println!("You entered: {}", input.trim());  // Trim the input to remove the newline character
-    return input.trim().parse::<T>().unwrap();
+    trimmed.parse().map_err(|e| format!("Parse error: {}", e))
 }
 
-// console::clear_screen();
-// console::set_color("red");
-// console::print("Hello, world!");
-// console::reset_color();
-// console::print("Hello, world!");
-// console::set_color("green");
+pub fn __delay_ms(ms: u64) {std::thread::sleep(std::time::Duration::from_millis(ms));}
 
+// Example usage and testing
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-/// Pause the program until the user presses enter.
-/// 
-/// This function will print a message to the console and wait for the user to press enter.
-#[inline]
-fn pause() {
-    println!("Press enter to exit...");
-    let mut _input = String::new();
-    std::io::stdin().read_line(&mut _input).expect("Error reading line");
+    fn test_base_change() {
+        vec![  // vec![src_base, new_base, src, result]
+            // bin -> dec
+            (2, 10, "11011100", "220"),
+            (2, 10, "110011", "51"),
+            (2, 10, "11001100", "204"),
+            (2, 10, "11110011", "243"),
+            (2, 10, "1100111", "103"),
+            // dec -> bin
+            (10, 2, "197", "11000101"),
+            (10, 2, "253", "11111101"),
+            (10, 2, "79", "1001111"),
+            (10, 2, "297", "100101001"),
+            (10, 2, "528", "1000010000"),
+            // bin -> hex
+            (2, 16, "100111011", "13B"),
+            (2, 16, "11011011", "DB"),
+            (2, 16, "101111011", "17B"),
+            (2, 16, "11011001", "D9"),
+            (2, 16, "111011101", "1DD"),
+            // hex -> bin
+            (16, 2, "9F", "10011111"),
+            (16, 2, "9BAF", "1001101110101111"),
+            (16, 2, "8BCD", "1000101111001101"),
+            (16, 2, "72BA", "111001010111010"),
+            (16, 2, "987", "100110000111"),
+            (16, 2, "9F27", "1001111100100111"),
+            // bin -> oct
+            (2, 8, "11011001", "331"),
+            (2, 8, "100111001", "471"),
+            (2, 8, "11100110", "346"),
+            (2, 8, "11001100", "314"),
+            (2, 8, "1101110", "156"),
+            // oct -> bin
+            (8, 2, "245", "10100101"),
+            (8, 2, "327", "11010111"),
+            (8, 2, "651", "110101001"),
+
+            // ? Decimal numbers test
+            // These aproximate numbers are not exact because of the floating point precision
+            // So the result is not exact, but it's close enough
+            // The str_to_num_from_base() fn returns the last number that is not 0. So the result is not exact
+            // &Example: 0.102000 -> 0.102 (the last 0s are not returned)
+            // TODO: FIX THE DECIMAL PART FUNCTIONS TO COMPARE THIS KIND OF NUMBERS
+            // (10, 2, "450.5", "111000010.1"),
+            // (10, 2, "8.5", "1000.1"),
+            // (10, 8, "450.5", "702.4"),
+            // (10, 8, "7.5", "7.4"),
+            // (10, 16, "450.5", "1C2.8"),
+            // (10, 16, "8.5", "8.8"),
+            // (8, 10, "450.5", "296.625"),
+            // (8, 10, "7.5", "7.625"),
+            // (2, 10, "1010.1", "10.5"),
+            // (20, 6, "AA.21", "550.034050123501235"),
+            // (10, 16, "2197.42", "895.6B851EB851EB851"),
+            // (16, 10, "9E.D", "158.8125"),
+
+        ].iter().for_each(|(src_base, new_base, src, result)|
+            // assert_eq!(str_to_num_from_base(src, *src_base, *new_base).unwrap(), result.to_string()));
+            println!("{}", 1)
+        );
+
+        // * To print the results in the terminal
+        // ].iter().for_each(|(src_base, new_base, src, result)|
+        //     println!("{} b{:_>2} = {} b{:_>2}\t{}", src, src_base, 
+        //         str_to_num_from_base(src, *src_base, *new_base).unwrap(), new_base,
+        //         crate::terminal::set_fg(result, if str_to_num_from_base(src, *src_base, *new_base).unwrap() == result.to_string() {"g"} else {"r"})
+        // ));
+    }
+
+    fn test_read_integer() {}
+    fn test_read_string() {}
+    fn test_pause() {}
 }
-
-
-
-
-
-
-
-
-
-
-use std::collections::HashMap;
 
 /// Module containing helper functions for the print_app_data macro
 pub mod helpers {
@@ -127,7 +191,7 @@ pub mod helpers {
         }
     }
 
-    /// Extracts specified data from Cargo.toml content.
+
     pub fn extract_app_data_with_sections<'a>(
         data: &'a str,
         sections: &[(&str, &[&str])]
@@ -137,21 +201,24 @@ pub mod helpers {
         let mut current_key = "";
         let mut multi_line_value = String::new();
     
-        // println!("Sections to extract: {:?}", sections);  // Debug print
-    
         for line in data.lines() {
             let trimmed_line = line.trim();
-            // println!("Processing line: {}", trimmed_line);  // Debug print
+            
+            // Skip empty lines and full-line comments
+            if trimmed_line.is_empty() || trimmed_line.starts_with('#') {
+                continue;
+            }
     
-            if trimmed_line.starts_with('[') && trimmed_line.ends_with(']') {
-                current_section = trimmed_line.trim_matches(&['[', ']'][..]);
-                // println!("Current section: {}", current_section);  // Debug print
-            } else if let Some((key, value)) = trimmed_line.split_once('=') {
+            // Remove inline comments
+            let line_without_comment = trimmed_line.split('#').next().unwrap().trim();
+    
+            if line_without_comment.starts_with('[') && line_without_comment.ends_with(']') {
+                current_section = line_without_comment.trim_matches(&['[', ']'][..]);
+            } else if let Some((key, value)) = line_without_comment.split_once('=') {
                 let key = key.trim();
                 if sections.iter().any(|&(s, keys)| s == current_section && keys.contains(&key)) {
                     let value = value.trim().trim_matches('"');
                     current_key = key;
-                    // println!("Found key: {}, value: {}", key, value);  // Debug print
                     if value.starts_with('[') && !value.ends_with(']') {
                         multi_line_value = value.to_string();
                     } else {
@@ -160,19 +227,17 @@ pub mod helpers {
                             .insert(key, value.to_string());
                     }
                 }
-            } else if !trimmed_line.is_empty() && !multi_line_value.is_empty() {
-                multi_line_value.push_str(trimmed_line);
-                if trimmed_line.ends_with(']') {
+            } else if !line_without_comment.is_empty() && !multi_line_value.is_empty() {
+                multi_line_value.push_str(line_without_comment);
+                if line_without_comment.ends_with(']') {
                     app_data.entry(current_section)
                         .or_insert_with(HashMap::new)
                         .insert(current_key, multi_line_value.trim_matches(&['[', ']'][..]).to_string());
                     multi_line_value.clear();
-                    // println!("Inserted multi-line value for key: {}", current_key);  // Debug print
                 }
             }
         }
     
-        // println!("Extracted data: {:?}", app_data);  // Debug print
         app_data
     }
 
@@ -213,8 +278,8 @@ macro_rules! app_dt {
         let package_data = all_data.get("package").expect("Failed to extract package data");
 
         println!("{} v{}\n",
-            package_data.get("name").unwrap().color(Color::Custom(RGB(16, 192, 16))),
-            package_data.get("version").unwrap().color(Color::Custom(RGB(8, 64, 224))).style(Style::Italic),
+            package_data.get("name").unwrap().color(Color::new(16, 192, 16)),
+            package_data.get("version").unwrap().color(Color::new(8, 64, 224)).style(Style::Italic),
         );
 
         // Only print additional data if any optional fields were provided

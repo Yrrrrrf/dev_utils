@@ -35,8 +35,8 @@ fn print_styles() {
 
 fn print_colors() {
     println!("\n--- Color Combinations (FG on BG) ---\n");
-    let colors = [Color::BLUE, Color::GREEN, Color::CYAN, Color::RED, Color::MAGENTA, Color::YELLOW, Color::WHITE];
-    let color_names = colors.iter().map(|color| format!("{:?}", color)).collect::<Vec<_>>();
+    let colors = [BLUE, GREEN, CYAN, RED, MAGENTA, YELLOW, WHITE];
+    let color_names = ["Blue", "Green", "Cyan", "Red", "Magenta", "Yellow", "White"];
 
     let max_width = color_names.iter().map(|name| name.len()).max().unwrap();
     
@@ -92,7 +92,7 @@ fn print_gradients() {
     }
 
     println!("Linear Gradient (Red to Blue):");
-    println!("{}\n", create_gradient(Color::RED, Color::BLUE, 15));
+    println!("{}\n", create_gradient(RED, BLUE, 15));
 
     println!("Rect Gradient:");
     println!("{}", create_rectangular_gradient(32, 16));

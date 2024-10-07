@@ -1,17 +1,56 @@
+//! Base conversion module for arbitrary-precision numbers.
+//!
+//! This module provides functionality to convert numbers between different bases,
+//! supporting bases from 2 to 62. It handles both integer and fractional numbers,
+//! and uses a custom [BigUint] implementation for arbitrary-precision arithmetic.
+//!
+//! # Features
+//! - Convert numbers between any base from 2 to 62
+//! - Support for fractional numbers
+//! - Arbitrary-precision arithmetic using [BigUint]
+//!
+//! # Examples
+//! ```
+//! use dev_utils::base_change::convert_base;
+//!
+//! assert_eq!(convert_base("1010", 2, 10).unwrap(), "10");
+//! assert_eq!(convert_base("FF", 16, 10).unwrap(), "255");
+//! ```
 use std::fmt;
 
+/// A custom arbitrary-precision unsigned integer implementation.
 #[derive(Debug, Clone, PartialEq, Eq)]
-struct BigUint {
-    digits: Vec<u8>,  // any number N base u8 (2^8 = 256 -> 0..=255)
+pub struct BigUint {
+    pub digits: Vec<u8>,  // any number N base u8 (2^8 = 256 -> 0..=255)
 }
 
 impl BigUint {
+    /// Creates a new `BigUint` initialized to zero.
+    ///
+    /// # Returns
+    /// A new `BigUint` instance with a single digit of value 0.
     fn new() -> Self {BigUint { digits: vec![0] }}
 
+    /// Creates a new `BigUint` from a u8 value.
+    ///
+    /// # Arguments
+    /// * `n` - The u8 value to convert to a `BigUint`.
+    ///
+    /// # Returns
+    /// A new `BigUint` instance representing the given u8 value.
     fn from_u8(n: u8) -> Self {BigUint { digits: vec![n] }}
 
+    /// Checks if the `BigUint` is zero.
+    ///
+    /// # Returns
+    /// `true` if the `BigUint` is zero, `false` otherwise.
     fn is_zero(&self) -> bool {self.digits.iter().all(|&d| d == 0)}
-
+    /// Multiplies the `BigUint` by a small (u8) number.
+    ///
+    /// # Arguments
+    /// * `n` - The u8 value to multiply by.
+    ///
+    /// This method modifies the `BigUint` in place.
     fn mul_small(&mut self, n: u8) {
         let mut carry = 0;
         for d in &mut self.digits {
@@ -22,6 +61,12 @@ impl BigUint {
         if carry > 0 {self.digits.push(carry as u8)}
     }
 
+    /// Adds a small (u8) number to the `BigUint`.
+    ///
+    /// # Arguments
+    /// * `n` - The u8 value to add.
+    ///
+    /// This method modifies the `BigUint` in place.
     fn add_small(&mut self, n: u8) {
         let mut carry = n;
         for d in &mut self.digits {
@@ -37,6 +82,15 @@ impl BigUint {
         }
     }
 
+    /// Divides the `BigUint` by a small (u16) number and returns the remainder.
+    ///
+    /// # Arguments
+    /// * `n` - The u16 value to divide by.
+    ///
+    /// # Returns
+    /// The remainder of the division as a u8.
+    ///
+    /// This method modifies the `BigUint` in place, storing the quotient.
     fn div_mod_small(&mut self, n: u16) -> u8 {
         let mut remainder = 0u16;
         for d in self.digits.iter_mut().rev() {
@@ -51,17 +105,29 @@ impl BigUint {
     }
 }
 
+/// A fixed-point decimal number representation.
 #[derive(Debug, Clone, PartialEq)]
-struct FixedDecimal {
-    value: BigUint,
-    scale: u32,
+pub struct FixedDecimal {
+    pub value: BigUint,
+    pub scale: u32,
 }
 
 impl FixedDecimal {
-    fn new(value: BigUint, scale: u32) -> Self {
-        FixedDecimal { value, scale }
-    }
+    /// Creates a new [FixedDecimal] from a [BigUint] value and a scale.
+    ///
+    /// # Arguments
+    /// * `value` - The `BigUint` value.
+    /// * `scale` - The number of decimal places.
+    fn new(value: BigUint, scale: u32) -> Self {FixedDecimal { value, scale }}
 
+    /// Parses a string representation of a number in a given base into a [FixedDecimal].
+    ///
+    /// # Arguments
+    /// * `s` - The string to parse.
+    /// * `radix` - The base of the number system (2-62).
+    ///
+    /// # Returns
+    /// A [Result] containing either the parsed [FixedDecimal] or a [BaseConversionError].
     fn from_str_radix(s: &str, radix: u32) -> Result<Self, BaseConversionError> {
         let parts: Vec<&str> = s.split('.').collect();
         if parts.len() > 2 {
@@ -97,6 +163,13 @@ impl FixedDecimal {
         Ok(FixedDecimal { value, scale })
     }
 
+    /// Converts the `FixedDecimal` to a string representation in the specified base.
+    ///
+    /// # Arguments
+    /// * `radix` - The base to convert to (2-62).
+    ///
+    /// # Returns
+    /// A [String] representing the number in the specified base.
     fn to_string_radix(&self, radix: u32) -> String {
         if self.value.is_zero() {
             return "0".to_string();
@@ -126,6 +199,7 @@ impl FixedDecimal {
     }
 }
 
+/// Represents errors that can occur during base conversion.
 #[derive(Debug)]
 pub enum BaseConversionError {
     InvalidBase,
@@ -133,7 +207,14 @@ pub enum BaseConversionError {
     InvalidInput,
 }
 
-fn digit_to_val(c: u8) -> Result<u8, BaseConversionError> {
+/// Converts a digit character to its numeric value.
+///
+/// # Arguments
+/// * `c` - The character to convert.
+///
+/// # Returns
+/// A `Result` containing either the numeric value or a [BaseConversionError].
+pub fn digit_to_val(c: u8) -> Result<u8, BaseConversionError> {
     match c {
         // todo: Improve this macro to now be able to:
         // todo: - handle more than 62 bases (the problem is how the define some custom ALPHABET)
@@ -144,7 +225,14 @@ fn digit_to_val(c: u8) -> Result<u8, BaseConversionError> {
     }
 }
 
-fn val_to_digit(v: u8) -> char {
+/// Converts a numeric value to its digit character representation.
+///
+/// # Arguments
+/// * `v` - The numeric value to convert.
+///
+/// # Returns
+/// The character representation of the digit.
+pub fn val_to_digit(v: u8) -> char {
     match v {
         0..=9 => (v + b'0') as char,
         10..=35 => (v - 10 + b'A') as char,
@@ -153,6 +241,14 @@ fn val_to_digit(v: u8) -> char {
     }
 }
 
+/// Converts the integer part of a [BigUint] to a string in the specified base.
+///
+/// # Arguments
+/// * `n` - The `BigUint` to convert.
+/// * `radix` - The base to convert to.
+///
+/// # Returns
+/// A `String` representing the integer part in the specified base.
 fn int_part_to_string_radix(n: &BigUint, radix: u32) -> String {
     if n.is_zero() {
         return "0".to_string();
@@ -167,6 +263,23 @@ fn int_part_to_string_radix(n: &BigUint, radix: u32) -> String {
     result
 }
 
+/// Converts a number from one base to another.
+///
+/// # Arguments
+/// * `number` - The number to convert, as a string.
+/// * `from_base` - The base of the input number (2-62).
+/// * `to_base` - The base to convert to (2-62).
+///
+/// # Returns
+/// A `Result` containing either the converted number as a [String] or a [BaseConversionError].
+///
+/// # Examples
+/// ```
+/// use crate::base_change::convert_base;
+///
+/// assert_eq!(convert_base("1010", 2, 10).unwrap(), "10");
+/// assert_eq!(convert_base("FF", 16, 10).unwrap(), "255");
+/// ```
 pub fn convert_base(number: &str, from_base: u32, to_base: u32) -> Result<String, BaseConversionError> {
     if from_base < 2 || from_base > 62 || to_base < 2 || to_base > 62 {
         return Err(BaseConversionError::InvalidBase);

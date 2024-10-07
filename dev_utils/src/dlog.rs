@@ -1,9 +1,43 @@
+//! A flexible and customizable logging module for Rust applications.
+//!
+//! This module provides a logging system with support for multiple log levels,
+//! colored output, and customizable formatting. It's designed to be easy to use
+//! while still offering advanced features for those who need them.
+//!
+//! # Features
+//! - Five log levels: Trace, Debug, Info, Warn, and Error
+//! - Colored output for easy visual distinction between log levels
+//! - Customizable log formatting through the `DlogStyle` trait
+//! - Atomic log level setting for thread-safe operation
+//! - Macros for easy logging at different levels
+//!
+//! # Examples
+//! ```
+//! use dev_utils::dlog::*;
+//!
+//! // Set the maximum log level
+//! set_max_level(Level::Debug);
+//!
+//! // Log messages at different levels
+//! error!("This is an error message");
+//! warn!("This is a warning message");
+//! info!("This is an info message");
+//! debug!("This is a debug message");
+//! trace!("This is a trace message"); // This won't be printed due to log level
+//! ```
 use std::fmt;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
+use crate::format::{Color, Style, Stylize};
+
+pub use crate::{__dlog_internal, error, warn, info, debug, trace};
 
 macro_rules! define_levels {
-    ($($level:ident => $value:expr, $color_code:expr),+ $(,)?) => {
+    ($($level:ident => $value:expr, $color:expr),+ $(,)?) => {
+        /// Represents the log level of a message.
+        /// 
+        /// The log levels are ordered from most detailed to least detailed.
+        /// Each level has an associated color for use in the terminal.
         #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
         pub enum Level {
             $($level = $value),+
@@ -18,9 +52,9 @@ macro_rules! define_levels {
         }
 
         impl Level {
-            fn color_code(&self) -> &'static str {
+            fn color(&self) -> Color {
                 match self {
-                    $(Level::$level => $color_code),+
+                    $(Level::$level => $color),+
                 }
             }
         }
@@ -28,26 +62,68 @@ macro_rules! define_levels {
 }
 
 define_levels! {
-    Trace => 5, "\x1b[35;1m",  // Bold Magenta
-    Debug => 4, "\x1b[36;1m",  // Bold Cyan
-    Info  => 3, "\x1b[32;1m",  // Bold Green
-    Warn  => 2, "\x1b[33;1m",  // Bold Yellow
-    Error => 1, "\x1b[31;1m",  // Bold Red
+    Trace => 5, Color::new(218,   0, 192),
+    Debug => 4, Color::new( 96, 216, 216),
+    Info  => 3, Color::new( 24, 216,  16),
+    Warn  => 2, Color::new(232, 232,  64),
+    Error => 1, Color::new(232,  72,  96),
 }
 
 static MAX_LOG_LEVEL: AtomicUsize = AtomicUsize::new(0);
 
+/// Sets the maximum log level.
+///
+/// Only log messages with a severity level equal to or higher than this will be displayed.
+///
+/// # Arguments
+///
+/// * `level` - The maximum `Level` to log
+///
+/// # Examples
+///
+/// ```
+/// use dev_utils::dlog::{set_max_level, Level};
+///
+/// set_max_level(Level::Info);  // Only log Info, Warn, and Error messages
+/// ```
 pub fn set_max_level(level: Level) {
     MAX_LOG_LEVEL.store(level as usize, Ordering::SeqCst);
 }
 
+/// Checks if a given log level is enabled.
+///
+/// # Arguments
+///
+/// * `level` - The `Level` to check
+///
+/// # Returns
+///
+/// `true` if the level is enabled, `false` otherwise
+///
+/// # Examples
+///
+/// ```
+/// use dev_utils::dlog::{enabled, Level, set_max_level};
+///
+/// set_max_level(Level::Info);
+/// assert!(enabled(Level::Error));
+/// assert!(!enabled(Level::Debug));
+/// ```
 pub fn enabled(level: Level) -> bool {
     level as usize <= MAX_LOG_LEVEL.load(Ordering::Relaxed)
 }
 
-
-const LEVEL_WIDTH: usize = 0x05;  // * Just an unsigned integer w/ a fancy declaration
-
+/// Removes ANSI escape sequences from a string.
+///
+/// This function is used internally to calculate the visual length of log messages.
+///
+/// # Arguments
+///
+/// * `src_str` - The input string that may contain ANSI escape sequences
+///
+/// # Returns
+///
+/// A new `String` with all ANSI escape sequences removed
 fn strip_ansi_escapes(src_str: &str) -> String {
     let mut result = String::with_capacity(src_str.len());
     let mut in_escape = false;
@@ -61,8 +137,22 @@ fn strip_ansi_escapes(src_str: &str) -> String {
 }
 
 
+const LEVEL_WIDTH: usize = 0x05;  // * Just an unsigned integer w/ a fancy declaration
 
+/// Trait for customizing log message formatting.
 pub trait DlogStyle {
+    /// Formats a log message.
+    ///
+    /// This method can be overridden to customize the appearance of log messages.
+    ///
+    /// # Arguments
+    ///
+    /// * `level` - The `Level` of the log message
+    /// * `args` - The message content as `fmt::Arguments`
+    ///
+    /// # Returns
+    ///
+    /// A `String` containing the formatted log message
     fn format_log(&self, level: &Level, args: fmt::Arguments) -> String {
         let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
         let secs = now.as_secs();
@@ -109,11 +199,32 @@ pub trait DlogStyle {
         output
     }
 
+    /// Applies color to the level indicator in the log message.
+    ///
+    /// # Arguments
+    ///
+    /// * `level` - The `Level` of the log message
+    /// * `msg` - The level indicator string
+    ///
+    /// # Returns
+    ///
+    /// A `String` containing the colored level indicator
     fn level_color(&self, level: &Level, msg: &str) -> String {
-        format!("{}{}\x1b[0m", level.color_code(), msg)
+        format!("{:?}{}\x1b[0m", level.color(), msg)
     }
 }
 
+/// Parses a string into lines, extracting any overall style.
+///
+/// This function is used internally to handle multi-line log messages and preserve styling.
+///
+/// # Arguments
+///
+/// * `input` - The input string to parse
+///
+/// # Returns
+///
+/// A tuple containing a `Vec<String>` of parsed lines and a `String` with any overall style
 fn parse_styled_lines(input: &str) -> (Vec<String>, String) {
     let mut lines = Vec::new();
     let mut overall_style = String::new();
@@ -132,20 +243,30 @@ fn parse_styled_lines(input: &str) -> (Vec<String>, String) {
 }
 
 
-
-
+/// The default implementation of `DlogStyle`.
 pub struct DefaultDlogStyle;
 
-impl DlogStyle for DefaultDlogStyle {}
+impl DlogStyle for DefaultDlogStyle {
+    fn level_color(&self, level: &Level, msg: &str) -> String {
+        msg.color(level.color()).style(Style::Bold)
+    }
+}
 
+/// Logs a message with the given style and level.
+///
+/// This function is the core of the logging system and is typically called through the logging macros.
+///
+/// # Arguments
+///
+/// * `style` - The `DlogStyle` to use for formatting
+/// * `level` - The `Level` of the log message
+/// * `args` - The message content as `fmt::Arguments`
 pub fn log(style: &impl DlogStyle, level: Level, args: fmt::Arguments) {
     if enabled(level) {
         let log_message = style.format_log(&level, args);
         println!("{}", log_message);
     }
 }
-
-
 
 #[macro_export]
 macro_rules! __dlog_internal {
