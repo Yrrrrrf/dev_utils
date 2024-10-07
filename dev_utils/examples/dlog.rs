@@ -1,5 +1,5 @@
 use dev_utils::{
-    __delay_ms, app_dt, datetime::*, dlog::{self, *}, format::*, 
+    __delay_ms, app_dt, datetime::*, dlog::*, format::*, 
 };
 
 fn main() {
@@ -11,10 +11,10 @@ fn main() {
     set_max_level(Level::Trace);
 
     showcase_log_levels();
-    // showcase_log_use_cases();  // * gen some delay's to simulate real-world scenarios
+    showcase_log_use_cases();  // * gen some delay's to simulate real-world scenarios
     showcase_log_formatting();
-    // showcase_datetime_features();  // Not very awesome... .__. 
-    // showcase_log_performance();  // = 352.6482ms / 10000 logs (average of 10 runs)
+    showcase_datetime_features();  // Not very awesome... .__. 
+    showcase_log_performance();  // = 352.6482ms / 10000 logs (average of 10 runs)
 }
 
 fn showcase_log_levels() {
@@ -32,7 +32,7 @@ fn showcase_log_levels() {
         trace!("Most detailed level, useful for step-by-step debugging");
         debug!("Useful for diagnosing issues");
         info!("General operational messages about program execution");
-        // warn!("Something unexpected happened, but the program can still continue");
+        warn!("Something unexpected happened, but the program can still continue");
         error!("A serious problem occurred, indicating potential a failure");
     }
 
@@ -51,7 +51,7 @@ fn showcase_log_levels() {
 fn showcase_log_formatting() {
     println!("\n{}", "Enhanced Log Formatting Features:".style(Style::Bold).style(Style::Italic));
 
-    dlog::info!("Standard log message");
+    info!("Standard log message");
 
     // Multi-line log for a simulated data structure
     let user_data = vec![

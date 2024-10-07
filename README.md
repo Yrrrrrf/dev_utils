@@ -22,8 +22,6 @@ dev_utils/
 │   ├── examples/  # Example applications
 │   └── README.md
 │   # Custom macros (not yet implemented)
-│   # * This crate is intended to be a separate crate in the future
-│   # * to allow for easy inclusion in other projects
 ├── dev_macros/
 │   ├── Cargo.toml
 │   └── src/lib.rs
@@ -35,18 +33,12 @@ dev_utils/
 Add the following to your `Cargo.toml`:
 ```toml
 [dependencies]
-dev_utils = "0.15"
+dev_utils = "0.*"  # add the latest version
 ```
 
 ## Examples
 
-The `examples` directory contains several sample applications showcasing the usage of Dev Utils features.
-```bash
-cargo run --example main_tester
-cargo run --example numbers
-cargo run --example formatting
-cargo run --example dlog
-```
+The [`examples`](./dev_utils/examples/) directory contains several sample applications showcasing the usage of Dev Utils features.
 
 ## Contributing
 
@@ -68,7 +60,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Thanks to all contributors who have helped shape the Dev Utils Project.
 - The Rust community for continuous inspiration and support.
-
----
-
-For the latest updates, feature requests, or to report issues, please visit our [GitHub repository](https://github.com/Yrrrrrf/dev_utils).

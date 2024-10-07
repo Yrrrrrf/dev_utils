@@ -10,11 +10,28 @@
 - [x] `dlog` - dev log instance different from the `log` crate but same macros
 - [x] `datetime` - UNIX timestamp, and date and time utilities
 - [x] `base_change` - Convert between bases (any base to any base)
-    - [ ] fix *some* bugs (when using decimals) 
+    - [ ] fix *some* bugs (when using FixedPoint | Decimals) 
 - [x] `formatting` - Styling traits for formatting data (ANSI colors, bold, italic, underline, etc.)
-- [X] `file` - Create, read, update, and delete files
-    - [ ] other file manipulation utilities (list, copy, move, rename)
+- [x] `file` - Some file manipulation utilities (crud, list, copy, move, rename)
 
+## Getting Started
+To use this crate, add the following to your [`Cargo.toml`](Cargo.toml) file:
+```toml
+[dependencies]
+dev_utils = "0.15"  # or the latest version
+```
+
+## Usage
+```rust 
+use dev_utils::app_dt;
+
+fn main() {
+    app_dt!(file!());  // Print package name and version from Cargo.toml
+    // this will flush the buffer and print the package name and version
+
+    // some new logic w/ a clean slate
+}
+```
 <!--
 - [ ] `readline` - Interactive readline (for use in a REPL (interactive shell))
 - [ ] `serde` - Serialize and deserialize data
@@ -24,15 +41,6 @@
     - [ ] `cipher` - Cipher utilities
     - [ ] `key` - Key utilities
 -->
-
-## Usage
-
-To use this crate, add the following to your [`Cargo.toml`](Cargo.toml) file:
-
-```toml
-[dependencies]
-dev_utils = "0.15"
-```
 
 ## [License](LICENSE)
 
