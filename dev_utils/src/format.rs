@@ -24,11 +24,7 @@ use std::fmt;
 
 /// Represents an RGB color.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Color {
-    r: u8,
-    g: u8,
-    b: u8,
-}
+pub struct Color { r: u8, g: u8, b: u8, }
 
 impl Color {
     /// Creates a new `Color` instance with the given RGB values.
@@ -132,10 +128,8 @@ create_style_enum! {
 pub trait Stylize {
     /// Applies a color to the text.
     fn color(&self, color: Color) -> String;
-
     /// Applies a background color to the text.
     fn on_color(&self, color: Color) -> String;
-
     /// Applies a style to the text.
     fn style(&self, style: Style) -> String;
 }
@@ -177,7 +171,7 @@ impl_stylize! { str String }
 /// ```
 pub fn strip_ansi_codes(s: &str) -> String {
     #[derive(Clone, Copy)]
-    enum State { Normal, Escape, CSI }
+    enum State { Normal, Escape, Csi }
 
     // THIS FSM is used to strip ANSI escape codes from the given string
     // It scans through the characters and removes the ANSI codes
@@ -189,19 +183,19 @@ pub fn strip_ansi_codes(s: &str) -> String {
                     Some(None)
                 },
                 (State::Escape, '[') => {
-                    *state = State::CSI;
+                    *state = State::Csi;
                     Some(None)
                 },
                 (State::Escape, _) => {
                     *state = State::Normal;
                     Some(Some('\x1B'))
                 },
-                (State::CSI, 'm') => {
+                (State::Csi, 'm') => {
                     *state = State::Normal;
                     Some(None)
                 },
-                (State::CSI, '0'..='9') | (State::CSI, ';') => Some(None),
-                (State::CSI, _) => {
+                (State::Csi, '0'..='9') | (State::Csi, ';') => Some(None),
+                (State::Csi, _) => {
                     *state = State::Normal;
                     Some(Some(c))
                 },

@@ -10,13 +10,10 @@
 //! ```rust 
 //! use dev_utils::app_dt;
 //! 
-//! fn main() {
-//!     app_dt!(file!());  // Print package name and version from Cargo.toml
-//! 
-//!     app_dt!(file!(),  // Print package name, version, license, and keywords
-//!         "package" => ["license", "keywords"]  // selected sections and keys
-//!     );
-//! }
+//! app_dt!(file!());  // Print package name and version from Cargo.toml
+//! app_dt!(file!(),  // Print package name, version, license, and keywords
+//!     "package" => ["license", "keywords"]  // selected sections and keys
+//! );
 //! ```
 #![allow(unused)]
 
@@ -166,7 +163,7 @@ pub mod helpers {
         for (section, data) in app_data {
             println!("{}:", section.style(Style::Bold));
             for (key, value) in data {
-                if !skip_keys.contains(&key) {
+                if !skip_keys.contains(key) {
                     println!("\t{key}: {}", value.style(Style::Italic).style(Style::Dim));
                 }
             }

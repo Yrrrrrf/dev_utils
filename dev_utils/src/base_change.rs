@@ -281,7 +281,7 @@ fn int_part_to_string_radix(n: &BigUint, radix: u32) -> String {
 /// assert_eq!(convert_base("FF", 16, 10).unwrap(), "255");
 /// ```
 pub fn convert_base(number: &str, from_base: u32, to_base: u32) -> Result<String, BaseConversionError> {
-    if from_base < 2 || from_base > 62 || to_base < 2 || to_base > 62 {
+    if !(2..=62).contains(&from_base) || !(2..=62).contains(&to_base) {
         return Err(BaseConversionError::InvalidBase);
     }
 

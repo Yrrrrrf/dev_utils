@@ -25,8 +25,9 @@
 //! let parsed_dt = DateTime::from_str("2023-05-01 12:34:56").unwrap();
 //! assert_eq!(parsed_dt, dt);
 //! ```
+use std::path::Display;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
-use std::fmt;
+use std::fmt::{self};
 use std::str::FromStr;
 use std::error::Error;
 
@@ -145,6 +146,12 @@ impl Date {
     }
 }
 
+impl fmt::Display for Date {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:04}-{:02}-{:02}", self.year, self.month, self.day)
+    }
+}
+
 impl Time {
     /// Creates a new [Time] instance.
     ///
@@ -171,6 +178,12 @@ impl Time {
             (_, _, s) if s >= 60 => Err(DateTimeError::InvalidSecond(s)),
             _ => unreachable!() // * This case should never happen due to the nature of u8
         }
+    }
+}
+
+impl fmt::Display for Time {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:02}:{:02}:{:02}", self.hour, self.minute, self.second)
     }
 }
 
@@ -210,7 +223,7 @@ impl DateTime {
         let (hour, minute, second) = (seconds / 3600, (seconds % 3600) / 60, seconds % 60);
 
         Ok(Self {
-            date: Date::new(year, month as u8, (day + 1) as u8)?,
+            date: Date::new(year, month, day + 1)?,
             time: Time::new(hour as u8, minute as u8, second as u8)?,
         })
     }

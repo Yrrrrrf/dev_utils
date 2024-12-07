@@ -14,7 +14,7 @@ fn main() {
     showcase_log_use_cases();  // * gen some delay's to simulate real-world scenarios
     showcase_log_formatting();
     showcase_datetime_features();  // Not very awesome... .__. 
-    showcase_log_performance();  // = 352.6482ms / 10000 logs (average of 10 runs)
+    // showcase_log_performance();  // = 352.6482ms / 10000 logs (average of 10 runs)
 }
 
 fn showcase_log_levels() {

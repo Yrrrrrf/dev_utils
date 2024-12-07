@@ -178,7 +178,6 @@ pub fn update<P: AsRef<Path>>(path: P, content: &str) -> Result<()> {
 /// ```
 pub fn append<P: AsRef<Path>>(path: P, content: &str) -> Result<()> {
     let mut file = OpenOptions::new()
-        .write(true)
         .append(true)
         .create(true)
         .open(path)?;

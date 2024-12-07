@@ -8,8 +8,8 @@ use dev_utils::{app_dt, read_input};
 use dev_utils::datetime::{Date, Time, DateTime};
 use std::str::FromStr;
 fn main() {
-    // app_dt!(file!());
-    app_dt!(file!(), "package" => ["license", "keywords"]);
+    app_dt!(file!());
+    // app_dt!(file!(), "package" => ["license", "keywords"]);
 
     set_max_level(dev_utils::dlog::Level::Trace);
 
