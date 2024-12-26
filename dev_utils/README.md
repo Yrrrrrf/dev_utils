@@ -6,9 +6,6 @@
 
 `dev_utils` is a collection of utilities for use in development. Designed to be a comprehensive crate, containing a wide variety of tools for use in development. **Intended to be used as a dependency in other projects**, and as such, it is designed to be as modular as possible, allowing users to only include the features they need.
 
-
-V0.1.1-rc.1
-
 ## Features
 - [x] `dlog` - dev log instance different from the `log` crate but same macros
 - [x] `datetime` - UNIX timestamp, and date and time utilities
@@ -21,7 +18,7 @@ V0.1.1-rc.1
 To use this crate, add the following to your [`Cargo.toml`](Cargo.toml) file:
 ```toml
 [dependencies]
-dev_utils = "0.1.*"
+dev_utils = "0.1.1"
 ```
 
 ## Usage
