@@ -21,10 +21,13 @@
 //! ```
 use std::fmt;
 
-
 /// Represents an RGB color.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Color { r: u8, g: u8, b: u8, }
+pub struct Color {
+    r: u8,
+    g: u8,
+    b: u8,
+}
 
 impl Color {
     /// Creates a new `Color` instance with the given RGB values.
@@ -39,7 +42,9 @@ impl Color {
     }
 
     /// Returns the RGB components as a tuple.
-    pub fn to_rgb(&self) -> (u8, u8, u8) { (self.r, self.g, self.b) }
+    pub fn to_rgb(&self) -> (u8, u8, u8) {
+        (self.r, self.g, self.b)
+    }
 
     /// Returns the ANSI escape code for setting this color as the foreground color.
     ///
@@ -47,7 +52,7 @@ impl Color {
     ///
     /// ```
     /// use dev_utils::format::Color;
-    /// 
+    ///
     /// let red = Color::new(255, 0, 0);
     /// println!("{}Red text\x1b[0m", red.as_fg());
     /// ```
@@ -61,7 +66,7 @@ impl Color {
     ///
     /// ```
     /// use dev_utils::format::Color;
-    /// 
+    ///
     /// let blue = Color::new(0, 0, 255);
     /// println!("{}Text with blue background\x1b[0m", blue.as_bg());
     /// ```
@@ -70,10 +75,11 @@ impl Color {
     }
 }
 
-
 impl From<(u8, u8, u8)> for Color {
     /// Creates a `Color` from an RGB tuple.
-    fn from(rgb: (u8, u8, u8)) -> Self {Color::new(rgb.0, rgb.1, rgb.2)}
+    fn from(rgb: (u8, u8, u8)) -> Self {
+        Color::new(rgb.0, rgb.1, rgb.2)
+    }
 }
 
 // The `define_colors!` macro creates constant Color instances.
@@ -100,7 +106,7 @@ define_colors!(
 macro_rules! create_style_enum {
     ($(($style:ident, $code:expr)),* $(,)?) => {
         /// Variants are created by the `create_style_enum!` macro.
-        /// 
+        ///
         ///  Documentation for each style will be generated automatically.
         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
         pub enum Style {$($style,)*}
@@ -165,42 +171,44 @@ impl_stylize! { str String }
 ///
 /// ```
 /// use dev_utils::format::strip_ansi_codes;
-/// 
+///
 /// let colored_text = "\x1b[31mRed text\x1b[0m";
 /// assert_eq!(strip_ansi_codes(colored_text), "Red text");
 /// ```
 pub fn strip_ansi_codes(s: &str) -> String {
     #[derive(Clone, Copy)]
-    enum State { Normal, Escape, Csi }
+    enum State {
+        Normal,
+        Escape,
+        Csi,
+    }
 
     // THIS FSM is used to strip ANSI escape codes from the given string
     // It scans through the characters and removes the ANSI codes
     s.chars()
-        .scan(State::Normal, |state, c| {
-            match (*state, c) {
-                (State::Normal, '\x1B') => {
-                    *state = State::Escape;
-                    Some(None)
-                },
-                (State::Escape, '[') => {
-                    *state = State::Csi;
-                    Some(None)
-                },
-                (State::Escape, _) => {
-                    *state = State::Normal;
-                    Some(Some('\x1B'))
-                },
-                (State::Csi, 'm') => {
-                    *state = State::Normal;
-                    Some(None)
-                },
-                (State::Csi, '0'..='9') | (State::Csi, ';') => Some(None),
-                (State::Csi, _) => {
-                    *state = State::Normal;
-                    Some(Some(c))
-                },
-                (State::Normal, c) => Some(Some(c)),
+        .scan(State::Normal, |state, c| match (*state, c) {
+            (State::Normal, '\x1B') => {
+                *state = State::Escape;
+                Some(None)
             }
+            (State::Escape, '[') => {
+                *state = State::Csi;
+                Some(None)
+            }
+            (State::Escape, _) => {
+                *state = State::Normal;
+                Some(Some('\x1B'))
+            }
+            (State::Csi, 'm') => {
+                *state = State::Normal;
+                Some(None)
+            }
+            (State::Csi, '0'..='9') | (State::Csi, ';') => Some(None),
+            (State::Csi, _) => {
+                *state = State::Normal;
+                Some(Some(c))
+            }
+            (State::Normal, c) => Some(Some(c)),
         })
         .flatten()
         .collect()
@@ -223,7 +231,7 @@ pub fn strip_ansi_codes(s: &str) -> String {
 ///
 /// ```
 /// use dev_utils::format::visual_length;
-/// 
+///
 /// let colored_text = "\x1b[31mRed\x1b[0m \x1b[32mGreen\x1b[0m";
 /// assert_eq!(visual_length(colored_text), 9); // "Red Green"
 /// ```

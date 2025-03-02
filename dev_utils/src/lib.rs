@@ -1,15 +1,15 @@
 //! A collection of utility functions for common development tasks, including logging, terminal manipulation, file handling, and more.
-//! 
+//!
 //! ```toml
 //! [dependencies]
 //! dev_utils = "0.*"  # Add the latest version of this crate
 //! ```
-//! 
+//!
 //! # Usage
-//! 
-//! ```rust 
+//!
+//! ```rust
 //! use dev_utils::app_dt;
-//! 
+//!
 //! app_dt!(file!());  // Print package name and version from Cargo.toml
 //! app_dt!(file!(),  // Print package name, version, license, and keywords
 //!     "package" => ["license", "keywords"]  // selected sections and keys
@@ -17,16 +17,20 @@
 //! ```
 #![allow(unused)]
 
-
-pub mod dlog;
-pub mod format;
-pub mod file;
-pub mod datetime;
 pub mod base_change;
+pub mod datetime;
+pub mod dlog;
+pub mod file;
+pub mod format;
 
+use std::fmt::Display;
 use std::io::{self, Write};
 use std::str::FromStr;
-use std::fmt::Display;
+
+// todo: FOR dev_utils: dev_macros/some(mod)
+// todo:     - some custom proc-macro to gen:
+// todo:         - new() fn should have default values for all fields
+// todo:         - new(*args) fn should have custom values for all fields
 
 /// Reads input from the console, optionally displaying a prompt message.
 ///
@@ -67,25 +71,31 @@ where
     }
 
     let mut input = String::new();
-    io::stdin().read_line(&mut input).expect("Failed to read line");
+    io::stdin()
+        .read_line(&mut input)
+        .expect("Failed to read line");
 
     let trimmed = input.trim();
 
-    if trimmed.is_empty() {return Ok(T::default());}
+    if trimmed.is_empty() {
+        return Ok(T::default());
+    }
 
     trimmed.parse().map_err(|e| format!("Parse error: {}", e))
 }
 
 /// Delays the program execution for the specified number of milliseconds.
-pub fn __delay_ms(ms: u64) {std::thread::sleep(std::time::Duration::from_millis(ms));}
+pub fn __delay_ms(ms: u64) {
+    std::thread::sleep(std::time::Duration::from_millis(ms));
+}
 
 /// Module containing helper functions for the print_app_data macro
 pub mod helpers {
-    use std::path::PathBuf;
+    use std::collections::HashMap;
+    use std::env;
     use std::fs;
     use std::io;
-    use std::env;
-    use std::collections::HashMap;
+    use std::path::PathBuf;
 
     use crate::format::{Color, Style, Stylize};
 
@@ -104,43 +114,49 @@ pub mod helpers {
             }
 
             if path.as_os_str().is_empty() {
-                return Err(io::Error::new(io::ErrorKind::NotFound, "Cargo.toml not found in any parent directory"));
+                return Err(io::Error::new(
+                    io::ErrorKind::NotFound,
+                    "Cargo.toml not found in any parent directory",
+                ));
             }
         }
     }
 
-
     pub fn extract_app_data_with_sections<'a>(
         data: &'a str,
-        sections: &[(&str, &[&str])]
+        sections: &[(&str, &[&str])],
     ) -> HashMap<&'a str, HashMap<&'a str, String>> {
         let mut app_data = HashMap::new();
         let mut current_section = "";
         let mut current_key = "";
         let mut multi_line_value = String::new();
-    
+
         for line in data.lines() {
             let trimmed_line = line.trim();
-            
+
             // Skip empty lines and full-line comments
             if trimmed_line.is_empty() || trimmed_line.starts_with('#') {
                 continue;
             }
-    
+
             // Remove inline comments
             let line_without_comment = trimmed_line.split('#').next().unwrap().trim();
-    
+
             if line_without_comment.starts_with('[') && line_without_comment.ends_with(']') {
                 current_section = line_without_comment.trim_matches(&['[', ']'][..]);
             } else if let Some((key, value)) = line_without_comment.split_once('=') {
                 let key = key.trim();
-                if sections.iter().any(|&(s, keys)| s == current_section && keys.contains(&key)) {
+                if sections
+                    .iter()
+                    .any(|&(s, keys)| s == current_section && keys.contains(&key))
+                {
                     let value = value.trim().trim_matches('"');
                     current_key = key;
                     if value.starts_with('[') && !value.ends_with(']') {
                         multi_line_value = value.to_string();
                     } else {
-                        app_data.entry(current_section)
+                        app_data
+                            .entry(current_section)
                             .or_insert_with(HashMap::new)
                             .insert(key, value.to_string());
                     }
@@ -148,18 +164,25 @@ pub mod helpers {
             } else if !line_without_comment.is_empty() && !multi_line_value.is_empty() {
                 multi_line_value.push_str(line_without_comment);
                 if line_without_comment.ends_with(']') {
-                    app_data.entry(current_section)
+                    app_data
+                        .entry(current_section)
                         .or_insert_with(HashMap::new)
-                        .insert(current_key, multi_line_value.trim_matches(&['[', ']'][..]).to_string());
+                        .insert(
+                            current_key,
+                            multi_line_value.trim_matches(&['[', ']'][..]).to_string(),
+                        );
                     multi_line_value.clear();
                 }
             }
         }
-    
+
         app_data
     }
 
-    pub fn print_extracted_data(app_data: &HashMap<&str, HashMap<&str, String>>, skip_keys: &[&str]) {
+    pub fn print_extracted_data(
+        app_data: &HashMap<&str, HashMap<&str, String>>,
+        skip_keys: &[&str],
+    ) {
         for (section, data) in app_data {
             println!("{}:", section.style(Style::Bold));
             for (key, value) in data {
@@ -207,7 +230,6 @@ macro_rules! app_dt {
     }};
 }
 
-
 // Example usage and testing
 #[cfg(test)]
 mod tests {
@@ -215,6 +237,6 @@ mod tests {
 
     #[test]
     fn some_useful_test() {
-        app_dt!(file!());  // Print package name and version from Cargo.toml
+        app_dt!(file!()); // Print package name and version from Cargo.toml
     }
 }

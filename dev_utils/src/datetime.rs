@@ -25,24 +25,34 @@
 //! let parsed_dt = DateTime::from_str("2023-05-01 12:34:56").unwrap();
 //! assert_eq!(parsed_dt, dt);
 //! ```
-use std::path::Display;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
-use std::fmt::{self};
-use std::str::FromStr;
 use std::error::Error;
-
+use std::fmt::{self};
+use std::path::Display;
+use std::str::FromStr;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 /// Represents a date with year, month, and day.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Date { year: i32, month: u8, day: u8, }
+pub struct Date {
+    year: i32,
+    month: u8,
+    day: u8,
+}
 
 // Represents a time with hour, minute, and second.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Time { hour: u8, minute: u8, second: u8, }
+pub struct Time {
+    hour: u8,
+    minute: u8,
+    second: u8,
+}
 
 /// Represents a combination of date and time.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct DateTime { pub date: Date, pub time: Time, }
+pub struct DateTime {
+    pub date: Date,
+    pub time: Time,
+}
 
 /// Represents errors that can occur when working with dates and times.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -67,8 +77,14 @@ impl fmt::Display for DateTimeError {
             Self::InvalidHour(hour) => write!(f, "Invalid hour: {}", hour),
             Self::InvalidMinute(minute) => write!(f, "Invalid minute: {}", minute),
             Self::InvalidSecond(second) => write!(f, "Invalid second: {}", second),
-            Self::InvalidDate { year, month, day } => write!(f, "Invalid date: {}-{}-{}", year, month, day),
-            Self::InvalidTime { hour, minute, second } => write!(f, "Invalid time: {}:{}:{}", hour, minute, second),
+            Self::InvalidDate { year, month, day } => {
+                write!(f, "Invalid date: {}-{}-{}", year, month, day)
+            }
+            Self::InvalidTime {
+                hour,
+                minute,
+                second,
+            } => write!(f, "Invalid time: {}:{}:{}", hour, minute, second),
             Self::ParseError(msg) => write!(f, "Parse error: {}", msg),
         }
     }
@@ -88,20 +104,25 @@ impl Date {
     /// A `Result` containing either the valid [Date] or a [DateTimeError].
     ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use dev_utils::datetime::Date;
-    /// 
+    ///
     /// let date = Date::new(2023, 5, 1).unwrap();
     /// assert!(Date::new(2023, 2, 29).is_err()); // Not a leap year
     /// ```
     pub const fn new(year: i32, month: u8, day: u8) -> Result<Self, DateTimeError> {
         match (month, day) {
-            (m, d) if m >= 1 && m <= 12 && d >= 1 && d <= Self::days_in_month(year, m) => 
-                Ok(Self { year, month: m, day: d }),
+            (m, d) if m >= 1 && m <= 12 && d >= 1 && d <= Self::days_in_month(year, m) => {
+                Ok(Self {
+                    year,
+                    month: m,
+                    day: d,
+                })
+            }
             (m, _) if m < 1 || m > 12 => Err(DateTimeError::InvalidMonth(m)),
             (_, d) => Err(DateTimeError::InvalidDay(d)),
-            _ => unreachable!()  // This case should never happen due to the nature of u8
+            _ => unreachable!(), // This case should never happen due to the nature of u8
         }
     }
 
@@ -117,7 +138,7 @@ impl Date {
     /// # Examples
     /// ```
     /// use dev_utils::datetime::Date;
-    /// 
+    ///
     /// assert_eq!(Date::days_in_month(2023, 2), 28);
     /// assert_eq!(Date::days_in_month(2024, 2), 29); // Leap year
     /// ```
@@ -137,7 +158,7 @@ impl Date {
     /// # Examples
     /// ```
     /// use dev_utils::datetime::Date;
-    /// 
+    ///
     /// assert!(!Date::is_leap_year(2023));
     /// assert!(Date::is_leap_year(2024));
     /// ```
@@ -166,17 +187,21 @@ impl Time {
     /// # Examples
     /// ```
     /// use dev_utils::datetime::Time;
-    /// 
+    ///
     /// let time = Time::new(12, 34, 56).unwrap();
     /// assert!(Time::new(24, 0, 0).is_err());
     /// ```
     pub const fn new(hour: u8, minute: u8, second: u8) -> Result<Self, DateTimeError> {
         match (hour, minute, second) {
-            (h, m, s) if h < 24 && m < 60 && s < 60 => Ok(Self { hour: h, minute: m, second: s }),
+            (h, m, s) if h < 24 && m < 60 && s < 60 => Ok(Self {
+                hour: h,
+                minute: m,
+                second: s,
+            }),
             (h, _, _) if h >= 24 => Err(DateTimeError::InvalidHour(h)),
             (_, m, _) if m >= 60 => Err(DateTimeError::InvalidMinute(m)),
             (_, _, s) if s >= 60 => Err(DateTimeError::InvalidSecond(s)),
-            _ => unreachable!() // * This case should never happen due to the nature of u8
+            _ => unreachable!(), // * This case should never happen due to the nature of u8
         }
     }
 }
@@ -193,7 +218,7 @@ impl DateTime {
     /// # Examples
     /// ```
     /// use dev_utils::datetime::DateTime;
-    /// 
+    ///
     /// let now = DateTime::now();
     /// println!("Current date and time: {}", now);
     /// ```
@@ -213,7 +238,7 @@ impl DateTime {
     /// # Examples
     /// ```
     /// use dev_utils::datetime::DateTime;
-    /// 
+    ///
     /// let dt = DateTime::from_timestamp(1682899200).unwrap();
     /// assert_eq!(dt.to_string(), "2023-05-02 00:00:00");
     /// ```
@@ -255,9 +280,15 @@ impl DateTime {
 
 impl fmt::Display for DateTime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:04}-{:02}-{:02} {:02}:{:02}:{:02}",  // 2023-05-01 12:34:56
-            self.date.year, self.date.month, self.date.day,  // date
-            self.time.hour, self.time.minute, self.time.second  // time
+        write!(
+            f,
+            "{:04}-{:02}-{:02} {:02}:{:02}:{:02}", // 2023-05-01 12:34:56
+            self.date.year,
+            self.date.month,
+            self.date.day, // date
+            self.time.hour,
+            self.time.minute,
+            self.time.second // time
         )
     }
 }
@@ -279,7 +310,7 @@ impl FromStr for DateTime {
     /// ```
     /// use dev_utils::datetime::DateTime;
     /// use std::str::FromStr;
-    /// 
+    ///
     /// let dt = DateTime::from_str("2023-05-01 12:34:56").unwrap();
     /// assert_eq!(dt.to_string(), "2023-05-01 12:34:56");
     /// ```
@@ -296,21 +327,25 @@ impl FromStr for DateTime {
             return Err(DateTimeError::ParseError("Invalid format".to_string()));
         }
 
-        fn parse_part<T>(part: &str, name: &str) -> Result<T, DateTimeError> where T: FromStr {
-            part.parse().map_err(|_| DateTimeError::ParseError(format!("Invalid {}", name)))
+        fn parse_part<T>(part: &str, name: &str) -> Result<T, DateTimeError>
+        where
+            T: FromStr,
+        {
+            part.parse()
+                .map_err(|_| DateTimeError::ParseError(format!("Invalid {}", name)))
         }
 
-        let year:  i32 = parse_part(date_parts[0], "year")?;
-        let month:  u8 = parse_part(date_parts[1], "month")?;
-        let day:    u8 = parse_part(date_parts[2], "day")?;
-        let hour:   u8 = parse_part(time_parts[0], "hour")?;
+        let year: i32 = parse_part(date_parts[0], "year")?;
+        let month: u8 = parse_part(date_parts[1], "month")?;
+        let day: u8 = parse_part(date_parts[2], "day")?;
+        let hour: u8 = parse_part(time_parts[0], "hour")?;
         let minute: u8 = parse_part(time_parts[1], "minute")?;
         let second: u8 = parse_part(time_parts[2], "second")?;
 
         Ok(Self {
-            date: Date::new(year, month, day)?, 
-            time: Time::new(hour, minute, second)? }
-        )
+            date: Date::new(year, month, day)?,
+            time: Time::new(hour, minute, second)?,
+        })
     }
 }
 

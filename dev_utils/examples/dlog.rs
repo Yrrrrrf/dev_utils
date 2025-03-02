@@ -1,28 +1,39 @@
-use dev_utils::{
-    __delay_ms, app_dt, datetime::*, dlog::*, format::*, 
-};
+use dev_utils::{__delay_ms, app_dt, datetime::*, dlog::*, format::*};
 
 fn main() {
     app_dt!(file!());
-    
-    println!("\n{}", "--- dlog Showcase ---".style(Style::Bold).color(CYAN));
+
+    println!(
+        "\n{}",
+        "--- dlog Showcase ---".style(Style::Bold).color(CYAN)
+    );
 
     // Initialize logging
     set_max_level(Level::Trace);
 
     showcase_log_levels();
-    showcase_log_use_cases();  // * gen some delay's to simulate real-world scenarios
+    showcase_log_use_cases(); // * gen some delay's to simulate real-world scenarios
     showcase_log_formatting();
-    showcase_datetime_features();  // Not very awesome... .__. 
-    // showcase_log_performance();  // = 352.6482ms / 10000 logs (average of 10 runs)
+    showcase_datetime_features(); // Not very awesome... .__.
+                                  // showcase_log_performance();  // = 352.6482ms / 10000 logs (average of 10 runs)
 }
 
 fn showcase_log_levels() {
-    println!("\n{}", "Log Levels Demonstration:".style(Style::Bold).style(Style::Italic));
+    println!(
+        "\n{}",
+        "Log Levels Demonstration:"
+            .style(Style::Bold)
+            .style(Style::Italic)
+    );
 
     // Helper function to set log level, print color-coded messages, and log all levels
     fn demonstrate_log_level(level: Level, color: Color, description: &str) {
-        println!("\n{}", format!("Log Level: {}", description).style(Style::Bold).color(color));
+        println!(
+            "\n{}",
+            format!("Log Level: {}", description)
+                .style(Style::Bold)
+                .color(color)
+        );
         set_max_level(level);
         log_all_levels();
     }
@@ -37,19 +48,49 @@ fn showcase_log_levels() {
     }
 
     // Demonstrate log levels with different settings
-    demonstrate_log_level(Level::Trace, Color::new(180,   0, 158), "Trace (all levels visible)");
-    demonstrate_log_level(Level::Debug, Color::new( 97, 214, 214), "Debug (Trace hidden, Debug and above visible)");
-    demonstrate_log_level(Level::Info,  Color::new( 22, 198,  12), "Info (Trace and Debug hidden, Info and above visible)");
-    demonstrate_log_level(Level::Warn,  Color::new(245, 245,  57), "Warn (Only Warn and Error visible)");
-    demonstrate_log_level(Level::Error, Color::new(231,  72,  86), "Error (Only Error logs visible)");
+    demonstrate_log_level(
+        Level::Trace,
+        Color::new(180, 0, 158),
+        "Trace (all levels visible)",
+    );
+    demonstrate_log_level(
+        Level::Debug,
+        Color::new(97, 214, 214),
+        "Debug (Trace hidden, Debug and above visible)",
+    );
+    demonstrate_log_level(
+        Level::Info,
+        Color::new(22, 198, 12),
+        "Info (Trace and Debug hidden, Info and above visible)",
+    );
+    demonstrate_log_level(
+        Level::Warn,
+        Color::new(245, 245, 57),
+        "Warn (Only Warn and Error visible)",
+    );
+    demonstrate_log_level(
+        Level::Error,
+        Color::new(231, 72, 86),
+        "Error (Only Error logs visible)",
+    );
 
     // Restore Trace level at the end
     set_max_level(Level::Trace);
-    println!("\n{}", "Log Level restored to Trace.".style(Style::Bold).color(GREEN));
+    println!(
+        "\n{}",
+        "Log Level restored to Trace."
+            .style(Style::Bold)
+            .color(GREEN)
+    );
 }
 
 fn showcase_log_formatting() {
-    println!("\n{}", "Enhanced Log Formatting Features:".style(Style::Bold).style(Style::Italic));
+    println!(
+        "\n{}",
+        "Enhanced Log Formatting Features:"
+            .style(Style::Bold)
+            .style(Style::Italic)
+    );
 
     info!("Standard log message");
 
@@ -61,20 +102,29 @@ fn showcase_log_formatting() {
         ("Role", "Admin"),
     ];
 
-    debug!("Logging multi-line structured data:\n{}",
-        user_data.iter().map(|(key, value)| format!("\t{}: {}", key, value))
-        .collect::<Vec<_>>().join("\n")
+    debug!(
+        "Logging multi-line structured data:\n{}",
+        user_data
+            .iter()
+            .map(|(key, value)| format!("\t{}: {}", key, value))
+            .collect::<Vec<_>>()
+            .join("\n")
     );
 
     // Log a long message split across multiple lines
-    info!("This is a long log message that spans multiple lines for better readability. \
+    info!(
+        "This is a long log message that spans multiple lines for better readability. \
         It demonstrates how long strings or messages can be split into readable chunks \
         without breaking the content flow."
     );
 
     // Log with colored and styled text
     let formatted_text = "Formatted".style(Style::Bold).color(GREEN);
-    info!("Logs can include {} and {} text", formatted_text, "styled".style(Style::Italic).color(MAGENTA));
+    info!(
+        "Logs can include {} and {} text",
+        formatted_text,
+        "styled".style(Style::Italic).color(MAGENTA)
+    );
 
     // Log the current timestamp
     let now = DateTime::now();
@@ -87,46 +137,60 @@ fn showcase_log_formatting() {
         ("File", file!()),
     ];
     // iter over all the data on err_dt and apply the dim style to all the values
-    let err_dt = err_dt.iter().map(|(key, value)| (key, value.style(Style::Dim))).collect::<Vec<_>>();
+    let err_dt = err_dt
+        .iter()
+        .map(|(key, value)| (key, value.style(Style::Dim)))
+        .collect::<Vec<_>>();
 
     // Multi-line error simulation
-    error!("Error on line: {}\n{}", line!(),
-        err_dt.iter().map(|(key, value)| format!("\t{}: {}", key, value))
-        .collect::<Vec<_>>().join("\n")
+    error!(
+        "Error on line: {}\n{}",
+        line!(),
+        err_dt
+            .iter()
+            .map(|(key, value)| format!("\t{}: {}", key, value))
+            .collect::<Vec<_>>()
+            .join("\n")
     );
-
 
     // todo: FIX THE ERRORS OCURRED WHEN HANDLING THE MULTILINE LOG...
     // todo: IT ALSO HAVE SOME ERROR IN WHICH THE STYLE IS APPLIED TO THE WHOLE STRING...
     // ^ In this case, the "Some new data:" is being styled as a whole string,
     // ^ not just the "Code: 200" and "Message: You got some successulf penchs"...
     // same as above but using the str in plain text
-    info!("Some new data:\n{}{}", 
+    info!(
+        "Some new data:\n{}{}",
         "\tCode: 200\n\tMessage: You got some successulf penchs\n\t".style(Style::Underline),
         file!().style(Style::Bold)
     );
-
 }
-
 
 // = Time to log 10000 messages: 352.6482ms
 // = Average time per log: 35.264µs
 fn showcase_log_performance() {
-    println!("\n{}", "Log Performance:".style(Style::Bold).style(Style::Italic));
-    
+    println!(
+        "\n{}",
+        "Log Performance:".style(Style::Bold).style(Style::Italic)
+    );
+
     let iterations = 10000;
     let start = std::time::Instant::now();
 
     (0..iterations).for_each(|i| trace!("Performance test log {}", i));
-    
+
     let duration = start.elapsed();
     println!("Time to log {} messages: {:?}", iterations, duration);
     println!("Average time per log: {:?}", duration / iterations as u32);
 }
 
 fn showcase_log_use_cases() {
-    println!("\n{}", "Practical Use Cases:".style(Style::Bold).style(Style::Italic));
-    
+    println!(
+        "\n{}",
+        "Practical Use Cases:"
+            .style(Style::Bold)
+            .style(Style::Italic)
+    );
+
     // Simulating an application startup
     info!("Application starting up...");
     debug!("Initializing modules...");
@@ -157,11 +221,13 @@ fn showcase_log_use_cases() {
     //     log!("{}", msg);
     //     __delay_ms(*delay);
     // });
-
 }
 
 fn showcase_datetime_features() {
-    println!("\n{}", "DateTime Features:".style(Style::Bold).style(Style::Italic));
+    println!(
+        "\n{}",
+        "DateTime Features:".style(Style::Bold).style(Style::Italic)
+    );
 
     // Creating a DateTime instance
     let now = DateTime::now();
@@ -170,7 +236,10 @@ fn showcase_datetime_features() {
     // Creating a custom DateTime
     let custom_date = Date::new(2023, 12, 31).unwrap();
     let custom_time = Time::new(23, 59, 59).unwrap();
-    let custom_datetime = DateTime { date: custom_date, time: custom_time };
+    let custom_datetime = DateTime {
+        date: custom_date,
+        time: custom_time,
+    };
     info!("Custom DateTime: {}", custom_datetime);
 
     // Parsing a DateTime from a string
@@ -182,19 +251,25 @@ fn showcase_datetime_features() {
     info!("DateTime from timestamp: {}", from_timestamp);
 
     // Demonstrating error handling
-    match Date::new(2023, 2, 29) {  // 29th Feb 2023 (not a leap year)
+    match Date::new(2023, 2, 29) {
+        // 29th Feb 2023 (not a leap year)
         Ok(date) => info!("Valid date: {:?}", date),
         Err(e) => println!("Invalid date: {}", e),
         // Err(e) => warn!("Invalid date: {}", e),
     }
 
     // Comparing DateTimes
-    info!("Comparing DateTimes: {} is earlier than {}", 
+    info!(
+        "Comparing DateTimes: {} is earlier than {}",
         "2023-05-01 12:00:00".parse::<DateTime>().unwrap(),
-        "2023-05-01 13:00:00".parse::<DateTime>().unwrap(), 
+        "2023-05-01 13:00:00".parse::<DateTime>().unwrap(),
     );
 
     // Demonstrating leap year
     let leap_year = 2024;
-    info!("Is {} a leap year? {}", leap_year, Date::is_leap_year(leap_year));
+    info!(
+        "Is {} a leap year? {}",
+        leap_year,
+        Date::is_leap_year(leap_year)
+    );
 }

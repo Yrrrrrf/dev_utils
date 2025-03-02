@@ -1,3 +1,7 @@
+// todo: FOR dev_utils: dev_macros/some(mod)
+// todo:     - some custom proc-macro to gen:
+// todo:         - new() fn should have default values for all fields
+// todo:         - new(*args) fn should have custom values for all fields
 
 
 

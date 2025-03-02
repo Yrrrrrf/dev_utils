@@ -2,7 +2,12 @@ use dev_utils::{app_dt, base_change::convert_base, format::*};
 
 fn main() {
     app_dt!(file!());
-    println!("\n{}", "--- Base Change Module Showcase ---".style(Style::Bold).color(CYAN));
+    println!(
+        "\n{}",
+        "--- Base Change Module Showcase ---"
+            .style(Style::Bold)
+            .color(CYAN)
+    );
 
     // * PASSED:
     showcase_basic_conversions();
@@ -15,7 +20,10 @@ fn main() {
 }
 
 fn showcase_basic_conversions() {
-    println!("\n{}", "Basic Conversions:".style(Style::Bold).style(Style::Italic));
+    println!(
+        "\n{}",
+        "Basic Conversions:".style(Style::Bold).style(Style::Italic)
+    );
 
     let conversions = [
         ("1010", 2, 10, "Binary to Decimal"),
@@ -28,7 +36,8 @@ fn showcase_basic_conversions() {
 
     for (input, from_base, to_base, description) in conversions.iter() {
         match convert_base(input, *from_base, *to_base) {
-            Ok(result) => println!("{}: {} (base {}) -> {} (base {})",
+            Ok(result) => println!(
+                "{}: {} (base {}) -> {} (base {})",
                 description.color(GREEN),
                 input.style(Style::Bold),
                 from_base,
@@ -41,7 +50,12 @@ fn showcase_basic_conversions() {
 }
 
 fn showcase_advanced_conversions() {
-    println!("\n{}", "Advanced Conversions:".style(Style::Bold).style(Style::Italic));
+    println!(
+        "\n{}",
+        "Advanced Conversions:"
+            .style(Style::Bold)
+            .style(Style::Italic)
+    );
 
     let conversions = [
         ("0.5", 10, 2, "Decimal fraction to Binary"),
@@ -53,7 +67,8 @@ fn showcase_advanced_conversions() {
 
     for (input, from_base, to_base, description) in conversions.iter() {
         match convert_base(input, *from_base, *to_base) {
-            Ok(result) => println!("{}: {} (base {}) -> {} (base {})",
+            Ok(result) => println!(
+                "{}: {} (base {}) -> {} (base {})",
                 description.color(BLUE),
                 input.style(Style::Bold),
                 from_base,
@@ -66,7 +81,10 @@ fn showcase_advanced_conversions() {
 }
 
 fn showcase_error_handling() {
-    println!("\n{}", "Error Handling:".style(Style::Bold).style(Style::Italic));
+    println!(
+        "\n{}",
+        "Error Handling:".style(Style::Bold).style(Style::Italic)
+    );
 
     let error_cases = [
         ("10", 1, 10, "Invalid input base"),
@@ -85,23 +103,35 @@ fn showcase_error_handling() {
 }
 
 fn showcase_performance() {
-    println!("\n{}", "Performance Test:".style(Style::Bold).style(Style::Italic));
+    println!(
+        "\n{}",
+        "Performance Test:".style(Style::Bold).style(Style::Italic)
+    );
 
     let iterations = 100_000;
     let start = std::time::Instant::now();
 
-    for _ in 0..iterations {let _ = convert_base("123456789", 10, 16);}
+    for _ in 0..iterations {
+        let _ = convert_base("123456789", 10, 16);
+    }
 
     let duration = start.elapsed();
     println!("Time to perform {} op: {:?}", iterations, duration);
     println!("Average time per op: {:?}", duration / iterations as u32);
-    println!("Operations per sec: {:.2}", iterations as f64 / duration.as_secs_f64());
-
+    println!(
+        "Operations per sec: {:.2}",
+        iterations as f64 / duration.as_secs_f64()
+    );
 }
 
 // You can add this function if you want to demonstrate the precision of the conversions
 fn showcase_precision() {
-    println!("\n{}", "Precision Demonstration:".style(Style::Bold).style(Style::Italic));
+    println!(
+        "\n{}",
+        "Precision Demonstration:"
+            .style(Style::Bold)
+            .style(Style::Italic)
+    );
 
     let precision_tests = [
         "0.1234567890123456789",
@@ -112,7 +142,7 @@ fn showcase_precision() {
     for &test in precision_tests.iter() {
         let binary = convert_base(test, 10, 2).unwrap();
         let back_to_decimal = convert_base(&binary, 2, 10).unwrap();
-        
+
         println!("Original: {}", test.color(CYAN));
         println!("To Binary: {}", binary.color(MAGENTA));
         println!("Back to Decimal: {}", back_to_decimal.color(GREEN));

@@ -1,5 +1,5 @@
 //! This module provides advanced functions for file and directory operations.
-//! 
+//!
 //! It offers a simple and efficient way to work with files and directories,
 //! allowing you to create, read, update, delete, list, copy, move, and rename files with ease.
 //!
@@ -9,34 +9,34 @@
 //! - Copying, moving, and renaming files
 //! - Error handling with custom error types
 //! - All operations use only the Rust standard library
-//! 
+//!
 //! # Examples
 //! ```
 //! use dev_utils::file::*;
-//! 
+//!
 //! // Create a new file
 //! let file_path = create("test.txt", "Hello, World!").unwrap();
-//! 
+//!
 //! // Read the file contents
 //! let content = read(&file_path).unwrap();
 //! assert_eq!(content, "Hello, World!");
-//! 
+//!
 //! // Update the file contents
 //! update(&file_path, "Updated content").unwrap();
 //! assert_eq!(read(&file_path).unwrap(), "Updated content");
-//! 
+//!
 //! // Append to the file
 //! append(&file_path, " Appended content").unwrap();
 //! assert_eq!(read(&file_path).unwrap(), "Updated content Appended content");
-//! 
+//!
 //! // Delete the file
 //! delete(&file_path).unwrap();
 //! assert!(!file_path.exists());
 //! ```
-use std::path::{Path, PathBuf};
-use std::fs::{self, File, OpenOptions, DirEntry};
-use std::io::{self, Read, Write, Error};
 use std::fmt;
+use std::fs::{self, DirEntry, File, OpenOptions};
+use std::io::{self, Error, Read, Write};
+use std::path::{Path, PathBuf};
 
 /// Custom error type for file operations.
 #[derive(Debug)]
@@ -59,7 +59,9 @@ impl fmt::Display for FileError {
 impl std::error::Error for FileError {}
 
 impl From<io::Error> for FileError {
-    fn from(err: io::Error) -> Self {FileError::Io(err)}
+    fn from(err: io::Error) -> Self {
+        FileError::Io(err)
+    }
 }
 
 /// Custom Result type for file operations.
@@ -177,10 +179,7 @@ pub fn update<P: AsRef<Path>>(path: P, content: &str) -> Result<()> {
 /// assert_eq!(read(&file_path).unwrap(), "Hello, World!");
 /// ```
 pub fn append<P: AsRef<Path>>(path: P, content: &str) -> Result<()> {
-    let mut file = OpenOptions::new()
-        .append(true)
-        .create(true)
-        .open(path)?;
+    let mut file = OpenOptions::new().append(true).create(true).open(path)?;
     file.write_all(content.as_bytes())?;
     Ok(())
 }
@@ -290,7 +289,6 @@ pub fn mv<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> Result<()> {
     fs::rename(from, to)?;
     Ok(())
 }
-
 
 /// Renames a file.
 ///
@@ -445,9 +443,15 @@ mod tests {
     const TEST_FILE_MOVE: &str = "test_file_move.txt";
     const TEST_FILE_RENAME: &str = "test_file_rename.txt";
 
-    fn setup() {fs::create_dir(TEST_DIR);}
-    fn cleanup() {fs::remove_dir_all(TEST_DIR);}
-    fn get_test_path(filename: &str) -> PathBuf {Path::new(TEST_DIR).join(filename)}
+    fn setup() {
+        fs::create_dir(TEST_DIR);
+    }
+    fn cleanup() {
+        fs::remove_dir_all(TEST_DIR);
+    }
+    fn get_test_path(filename: &str) -> PathBuf {
+        Path::new(TEST_DIR).join(filename)
+    }
 
     #[test]
     fn test_crud_operations() {
@@ -499,7 +503,8 @@ mod tests {
         // Find
         let txt_files = find(TEST_DIR, |entry| {
             entry.path().extension().map_or(false, |ext| ext == "txt")
-        }).unwrap();
+        })
+        .unwrap();
         assert_eq!(txt_files.len(), 2);
 
         cleanup();

@@ -21,7 +21,7 @@ use std::fmt;
 /// A custom arbitrary-precision unsigned integer implementation.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BigUint {
-    pub digits: Vec<u8>,  // any number N base u8 (2^8 = 256 -> 0..=255)
+    pub digits: Vec<u8>, // any number N base u8 (2^8 = 256 -> 0..=255)
 }
 
 impl BigUint {
@@ -29,7 +29,9 @@ impl BigUint {
     ///
     /// # Returns
     /// A new `BigUint` instance with a single digit of value 0.
-    fn new() -> Self {BigUint { digits: vec![0] }}
+    fn new() -> Self {
+        BigUint { digits: vec![0] }
+    }
 
     /// Creates a new `BigUint` from a u8 value.
     ///
@@ -38,13 +40,17 @@ impl BigUint {
     ///
     /// # Returns
     /// A new `BigUint` instance representing the given u8 value.
-    fn from_u8(n: u8) -> Self {BigUint { digits: vec![n] }}
+    fn from_u8(n: u8) -> Self {
+        BigUint { digits: vec![n] }
+    }
 
     /// Checks if the `BigUint` is zero.
     ///
     /// # Returns
     /// `true` if the `BigUint` is zero, `false` otherwise.
-    fn is_zero(&self) -> bool {self.digits.iter().all(|&d| d == 0)}
+    fn is_zero(&self) -> bool {
+        self.digits.iter().all(|&d| d == 0)
+    }
     /// Multiplies the `BigUint` by a small (u8) number.
     ///
     /// # Arguments
@@ -58,7 +64,9 @@ impl BigUint {
             *d = (prod % 256) as u8;
             carry = prod / 256;
         }
-        if carry > 0 {self.digits.push(carry as u8)}
+        if carry > 0 {
+            self.digits.push(carry as u8)
+        }
     }
 
     /// Adds a small (u8) number to the `BigUint`.
@@ -118,7 +126,9 @@ impl FixedDecimal {
     /// # Arguments
     /// * `value` - The `BigUint` value.
     /// * `scale` - The number of decimal places.
-    fn new(value: BigUint, scale: u32) -> Self {FixedDecimal { value, scale }}
+    fn new(value: BigUint, scale: u32) -> Self {
+        FixedDecimal { value, scale }
+    }
 
     /// Parses a string representation of a number in a given base into a [FixedDecimal].
     ///
@@ -185,7 +195,7 @@ impl FixedDecimal {
         }
 
         let mut result = int_part_to_string_radix(&int_part, radix);
-        
+
         if !frac_part.is_zero() {
             result.push('.');
             for _ in 0..self.scale {
@@ -280,7 +290,11 @@ fn int_part_to_string_radix(n: &BigUint, radix: u32) -> String {
 /// assert_eq!(convert_base("1010", 2, 10).unwrap(), "10");
 /// assert_eq!(convert_base("FF", 16, 10).unwrap(), "255");
 /// ```
-pub fn convert_base(number: &str, from_base: u32, to_base: u32) -> Result<String, BaseConversionError> {
+pub fn convert_base(
+    number: &str,
+    from_base: u32,
+    to_base: u32,
+) -> Result<String, BaseConversionError> {
     if !(2..=62).contains(&from_base) || !(2..=62).contains(&to_base) {
         return Err(BaseConversionError::InvalidBase);
     }
@@ -291,13 +305,16 @@ pub fn convert_base(number: &str, from_base: u32, to_base: u32) -> Result<String
 
 #[cfg(test)]
 mod tests {
-    use crate::format::{Style, Stylize};
     use super::*;
+    use crate::format::{Style, Stylize};
 
     #[test]
     fn test_fractional_conversion() {
         assert_eq!(convert_base("0.5", 10, 2).unwrap(), "0.1");
-        assert_eq!(convert_base("0.1", 10, 2).unwrap(), "0.0001100110011001100110011001100110011001100110011001101");
+        assert_eq!(
+            convert_base("0.1", 10, 2).unwrap(),
+            "0.0001100110011001100110011001100110011001100110011001101"
+        );
         assert_eq!(convert_base("0.1", 2, 10).unwrap(), "0.5");
     }
 
@@ -316,8 +333,14 @@ mod tests {
 
     #[test]
     fn test_base_62_conversion() {
-        assert_eq!(convert_base("HelloWorld", 62, 10).unwrap(), "239032307299047885");
-        assert_eq!(convert_base("239032307299047885", 10, 62).unwrap(), "HelloWorld");
+        assert_eq!(
+            convert_base("HelloWorld", 62, 10).unwrap(),
+            "239032307299047885"
+        );
+        assert_eq!(
+            convert_base("239032307299047885", 10, 62).unwrap(),
+            "HelloWorld"
+        );
     }
 
     #[test]
@@ -354,16 +377,20 @@ mod tests {
     fn compare_precision(a: &str, b: &str, digits: usize) -> bool {
         let a_parts: Vec<&str> = a.split('.').collect();
         let b_parts: Vec<&str> = b.split('.').collect();
-        
+
         // Compare integer parts
-        if a_parts[0] != b_parts[0] {return false;}
+        if a_parts[0] != b_parts[0] {
+            return false;
+        }
 
         // If either number doesn't have a fractional part, they're only equal if digits == 0
-        if a_parts.len() == 1 || b_parts.len() == 1 {return digits == 0;}
-        
+        if a_parts.len() == 1 || b_parts.len() == 1 {
+            return digits == 0;
+        }
+
         let a_frac = a_parts[1].chars().take(digits);
         let b_frac = b_parts[1].chars().take(digits);
-        
+
         a_frac.eq(b_frac)
     }
 
@@ -375,10 +402,12 @@ mod tests {
             ("0.1", 15),
             ("1.414213562373095", 8),
             ("3.141592653589793", 6),
-        ].iter().for_each(|(original, precision)| {
+        ]
+        .iter()
+        .for_each(|(original, precision)| {
             let binary = convert_base(original, 10, 2).unwrap();
             let back_to_decimal = convert_base(&binary, 2, 10).unwrap();
-            
+
             assert!(
                 compare_precision(original, &back_to_decimal, *precision),
                 "Failed for {} with precision {}: got {}",
@@ -415,7 +444,8 @@ mod tests {
 
     #[test]
     fn test_base_conversion() {
-        vec![  // vec![src_base, new_base, src, result]
+        vec![
+            // vec![src_base, new_base, src, result]
             // bin -> dec
             (2, 10, "11011100", "220"),
             (2, 10, "110011", "51"),
@@ -451,7 +481,6 @@ mod tests {
             (8, 2, "245", "10100101"),
             (8, 2, "327", "11010111"),
             (8, 2, "651", "110101001"),
-
             // ? Decimal numbers test
             // These aproximate numbers are not exact because of the floating point precision
             // So the result is not exact, but it's close enough
@@ -470,7 +499,9 @@ mod tests {
             // (20, 6, "AA.21", "550.034050123501235"),
             // (10, 16, "2197.42", "895.6B851EB851EB851"),
             // (16, 10, "9E.D", "158.8125"),
-        ].iter().for_each(|(src_base, new_base, src, result)| {
+        ]
+        .iter()
+        .for_each(|(src_base, new_base, src, result)| {
             assert_eq!(convert_base(src, *src_base, *new_base).unwrap(), *result)
         });
     }

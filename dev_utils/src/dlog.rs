@@ -25,17 +25,17 @@
 //! debug!("This is a debug message");
 //! trace!("This is a trace message"); // This won't be printed due to log level
 //! ```
+use crate::format::{Color, Style, Stylize};
 use std::fmt;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
-use crate::format::{Color, Style, Stylize};
 
-pub use crate::{__dlog_internal, error, warn, info, debug, trace};
+pub use crate::{__dlog_internal, debug, error, info, trace, warn};
 
 macro_rules! define_levels {
     ($($level:ident => $value:expr, $color:expr),+ $(,)?) => {
         /// Represents the log level of a message.
-        /// 
+        ///
         /// The log levels are ordered from most detailed to least detailed.
         /// Each level has an associated color for use in the terminal.
         #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
@@ -131,13 +131,12 @@ fn strip_ansi_escapes(src_str: &str) -> String {
         '\x1B' => in_escape = true,
         'm' if in_escape => in_escape = false,
         _ if !in_escape => result.push(c),
-        _ => (),  // do nothing when the str is an escape sequence (e.g. \x1B[90m)
+        _ => (), // do nothing when the str is an escape sequence (e.g. \x1B[90m)
     });
     result
 }
 
-
-const LEVEL_WIDTH: usize = 0x05;  // * Just an unsigned integer w/ a fancy declaration
+const LEVEL_WIDTH: usize = 0x05; // * Just an unsigned integer w/ a fancy declaration
 
 /// Trait for customizing log message formatting.
 pub trait DlogStyle {
@@ -158,20 +157,19 @@ pub trait DlogStyle {
         let secs = now.as_secs();
         let ms = now.subsec_millis();
 
-        let (hr, min, sec) = (
-            (secs / 3600) % 24,
-            (secs / 60) % 60,
-            secs % 60
-        );
+        let (hr, min, sec) = ((secs / 3600) % 24, (secs / 60) % 60, secs % 60);
 
         let timestamp = format!("\x1b[90m[{hr:02}:{min:02}:{sec:02}.{ms:03}]\x1b[0m");
-        
+
         let level_str = level.to_string();
-        let level_str = self.level_color(level, 
-            &format!("{level_str:>width$}", 
+        let level_str = self.level_color(
+            level,
+            &format!(
+                "{level_str:>width$}",
                 width = LEVEL_WIDTH - ((LEVEL_WIDTH - level_str.len()) / 2)
-        ));
-        
+            ),
+        );
+
         let prefix = format!("{} {} ", timestamp, level_str);
         let content_start = strip_ansi_escapes(&prefix).len();
 
@@ -185,7 +183,8 @@ pub trait DlogStyle {
                 format!("{}{}{}", prefix, overall_style, line)
             } else {
                 let line_prefix = if i == line_count - 1 { "└" } else { "│" };
-                format!("\n{}{} {}{}", 
+                format!(
+                    "\n{}{} {}{}",
                     " ".repeat(content_start - 2),
                     self.level_color(level, line_prefix),
                     overall_style,
@@ -242,7 +241,6 @@ fn parse_styled_lines(input: &str) -> (Vec<String>, String) {
     (lines, overall_style)
 }
 
-
 /// The default implementation of `DlogStyle`.
 pub struct DefaultDlogStyle;
 
@@ -275,12 +273,16 @@ macro_rules! __dlog_internal {
     };
 }
 
-#[macro_export] macro_rules! error { ($($arg:tt)+) => { $crate::__dlog_internal!($crate::dlog::Level::Error, $($arg)+) }; }
-#[macro_export] macro_rules! warn  { ($($arg:tt)+) => { $crate::__dlog_internal!($crate::dlog::Level::Warn,  $($arg)+) }; }
-#[macro_export] macro_rules! info  { ($($arg:tt)+) => { $crate::__dlog_internal!($crate::dlog::Level::Info,  $($arg)+) }; }
-#[macro_export] macro_rules! debug { ($($arg:tt)+) => { $crate::__dlog_internal!($crate::dlog::Level::Debug, $($arg)+) }; }
-#[macro_export] macro_rules! trace { ($($arg:tt)+) => { $crate::__dlog_internal!($crate::dlog::Level::Trace, $($arg)+) }; }
-
+#[macro_export]
+macro_rules! error { ($($arg:tt)+) => { $crate::__dlog_internal!($crate::dlog::Level::Error, $($arg)+) }; }
+#[macro_export]
+macro_rules! warn  { ($($arg:tt)+) => { $crate::__dlog_internal!($crate::dlog::Level::Warn,  $($arg)+) }; }
+#[macro_export]
+macro_rules! info  { ($($arg:tt)+) => { $crate::__dlog_internal!($crate::dlog::Level::Info,  $($arg)+) }; }
+#[macro_export]
+macro_rules! debug { ($($arg:tt)+) => { $crate::__dlog_internal!($crate::dlog::Level::Debug, $($arg)+) }; }
+#[macro_export]
+macro_rules! trace { ($($arg:tt)+) => { $crate::__dlog_internal!($crate::dlog::Level::Trace, $($arg)+) }; }
 
 // todo: Improve this code by implemeneting some PROC MACRO
 // todo: that will generate the following macros.

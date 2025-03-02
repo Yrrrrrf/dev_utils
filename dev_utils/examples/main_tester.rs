@@ -2,10 +2,10 @@
 
 use std::{thread, time::Duration};
 
+use dev_utils::datetime::{Date, DateTime, Time};
 use dev_utils::dlog::set_max_level;
 use dev_utils::format::{Color, Style, Stylize};
 use dev_utils::{app_dt, read_input};
-use dev_utils::datetime::{Date, Time, DateTime};
 use std::str::FromStr;
 fn main() {
     app_dt!(file!());
@@ -19,16 +19,15 @@ fn main() {
     some();
 }
 
-
 fn test_io() {
     let age = read_input::<u32>(Some("Enter your age: ")).unwrap();
     let name = read_input::<String>(Some("Enter your name: ")).unwrap();
-    println!("Hello, {}! You are {} years old.", name, age);    
+    println!("Hello, {}! You are {} years old.", name, age);
 }
 
 fn test_pause() {
-    read_input::<i128>(Some("Press Enter to continue..."));  // * Input prompt
-    read_input::<String>(None);  // * Silent pause
+    read_input::<i128>(Some("Press Enter to continue...")); // * Input prompt
+    read_input::<String>(None); // * Silent pause
 }
 
 fn f() {
@@ -41,7 +40,8 @@ fn f() {
 }
 
 fn some() {
-    vec![  // vec![src_base, new_base, src, result]
+    vec![
+        // vec![src_base, new_base, src, result]
         // bin -> dec
         (2, 10, "11011100", "220"),
         (2, 10, "110011", "51"),
@@ -77,7 +77,6 @@ fn some() {
         (8, 2, "245", "10100101"),
         (8, 2, "327", "11010111"),
         (8, 2, "651", "110101001"),
-
         // ? Decimal numbers test
         // These aproximate numbers are not exact because of the floating point precision
         // So the result is not exact, but it's close enough
@@ -96,16 +95,21 @@ fn some() {
         // (20, 6, "AA.21", "550.034050123501235"),
         // (10, 16, "2197.42", "895.6B851EB851EB851"),
         // (16, 10, "9E.D", "158.8125"),
-    ].iter().for_each(|(src_base, new_base, src, result)| {
+    ]
+    .iter()
+    .for_each(|(src_base, new_base, src, result)| {
         // dev_utils::info!("{} -> {} (base {})", src, result, new_base);
-        dev_utils::info!("{:>20} {} -> {:>24} {}",
+        dev_utils::info!(
+            "{:>20} {} -> {:>24} {}",
             src.style(Style::Bold),
             format!("(b_{:<02})", src_base.to_string()).style(Style::Dim),
             result.style(Style::Bold),
             format!("(b_{:<02})", new_base.to_string()).style(Style::Dim)
         );
 
-        assert_eq!(dev_utils::base_change::convert_base(src, *src_base, *new_base).unwrap(), *result)
-
+        assert_eq!(
+            dev_utils::base_change::convert_base(src, *src_base, *new_base).unwrap(),
+            *result
+        )
     });
 }
