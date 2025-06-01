@@ -27,6 +27,14 @@ use std::fmt::Display;
 use std::io::{self, Write};
 use std::str::FromStr;
 
+// todo: Add the key logger module as an optional feature!
+// // if the feature 'key_logger' is enabled, include the key_logger module
+// // #[cfg(feature = "key_logger")]
+// // pub mod key_logger;
+// // if the feature 'dev_macros' is enabled, include the dev_macros module
+// #[cfg(feature = "dev_macros")]
+// pub mod dev_macros;
+
 // todo: FOR dev_utils: dev_macros/some(mod)
 // todo:     - some custom proc-macro to gen:
 // todo:         - new() fn should have default values for all fields
