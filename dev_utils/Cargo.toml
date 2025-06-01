@@ -1,12 +1,13 @@
 [package]
 name = "dev_utils"
-version = "0.1.2"
+version = "0.1.4"
 description = "A collection of utilities for development"
 authors = ["Yrrrrrf <fer.rezac@outlook.com>"]
 repository = "https://github.com/Yrrrrrf/dev_utils"
 documentation = "https://docs.rs/dev_utils"
 edition = "2021"
 license = "MIT"
+readme = "../README.md"
 keywords = ["development", "utils", "utilities", "dev"]
 
 exclude = [  # Exclude files from the package
