@@ -1,8 +1,8 @@
 [package]
 name = "dev_utils"
-version = "0.1.1"
+version = "0.1.2"
 description = "A collection of utilities for development"
-authors = ["Yrrrrrf <fernandorezacampos@gmail.com>"]
+authors = ["Yrrrrrf <fer.rezac@outlook.com>"]
 repository = "https://github.com/Yrrrrrf/dev_utils"
 documentation = "https://docs.rs/dev_utils"
 edition = "2021"
@@ -18,15 +18,21 @@ exclude = [  # Exclude files from the package
 
 # [dev-dependencies]
 
-# [features]
-# default = []
+[features]
+default = [
+    "key_logger",
+]
 
-# bench = []
-# dev_macros = []
-# key_logger = []
+bench = []
 
-# full = [
+dev_macros = [
+]
+
+key_logger = [
+]
+
+full = [
 #     "bench",
-#     "dev_macros",
-#     "key_logger",
-# ]
+    # "dev_macros",
+    "key_logger",
+]

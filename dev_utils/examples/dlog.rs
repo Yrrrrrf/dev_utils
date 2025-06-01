@@ -4,18 +4,18 @@ fn main() {
     app_dt!(file!());
 
     println!(
-        "\n{}",
+        "{}",
         "--- dlog Showcase ---".style(Style::Bold).color(CYAN)
     );
 
     // Initialize logging
     set_max_level(Level::Trace);
 
-    showcase_log_levels();
-    showcase_log_use_cases(); // * gen some delay's to simulate real-world scenarios
-    showcase_log_formatting();
-    showcase_datetime_features(); // Not very awesome... .__.
-                                  // showcase_log_performance();  // = 352.6482ms / 10000 logs (average of 10 runs)
+    // showcase_log_levels();
+    // showcase_log_use_cases(); // * gen some delay's to simulate real-world scenarios
+    // showcase_log_formatting();
+    // showcase_datetime_features(); // Not very awesome... .__.
+    showcase_log_performance();  // = 352.6482ms / 10000 logs (average of 10 runs)
 }
 
 fn showcase_log_levels() {
@@ -159,8 +159,9 @@ fn showcase_log_formatting() {
     // ^ not just the "Code: 200" and "Message: You got some successulf penchs"...
     // same as above but using the str in plain text
     info!(
-        "Some new data:\n{}{}",
-        "\tCode: 200\n\tMessage: You got some successulf penchs\n\t".style(Style::Underline),
+        "Some new data:\n{}{}{}", // Added {} for the file part
+        format!("\tCode: {}\n", "200".style(Style::Underline)), // Style only "200"
+        format!("\tMessage: {}\n\t", "You got some successulf penchs".style(Style::Underline)), // Style only the message
         file!().style(Style::Bold)
     );
 }
